@@ -110,4 +110,38 @@
                                  onDelete="CASCADE"/>
     </changeSet>
 
+       <changeSet id="auditlogweb-20260704-create-read-audit-event-time-idx" author="sudhanshu_raj">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="read_audit_log_event_time_idx"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="read_audit_log" indexName="read_audit_log_event_time_idx">
+            <column name="event_time"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="auditlogweb-20260704-create-read-audit-session-id-idx" author="sudhanshu_raj">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="read_audit_log_session_id_idx"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="read_audit_log" indexName="read_audit_log_session_id_idx">
+            <column name="session_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="auditlogweb-20260704-create-read-audit-entity-name-idx" author="sudhanshu_raj">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="read_audit_log_entity_name_idx"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="read_audit_log" indexName="read_read_audit_log_entity_name_idx">
+            <column name="entity_name"/>
+        </createIndex>
+    </changeSet>
+
+
 </databaseChangeLog>
