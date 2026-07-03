@@ -54,11 +54,12 @@ public class ReadAuditWorker {
 		}
 	}
 	
-	public void submitTask(ReadAuditLog readAuditLog) {
+	public boolean submitTask(ReadAuditLog readAuditLog) {
 		boolean isAdded = queue.offer(readAuditLog);
 		if (!isAdded) {
 			log.error("Queue is full!, can't submit new read audit task ");
 		}
+		return isAdded;
 	}
 	
 	private void run() {

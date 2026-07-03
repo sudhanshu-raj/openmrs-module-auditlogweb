@@ -169,6 +169,7 @@ public class ReadAuditServiceImpl extends BaseOpenmrsService implements ReadAudi
 			}
 			
 			List<ReadAuditEntityMetadata> newTargetEntities = new ArrayList<>();
+			List<String> cacheKeysToSet = new ArrayList<>();
 			List<ReadAuditEntityMetadata> targetEntities = getEntityMetadata(result);
 			for (ReadAuditEntityMetadata targetEntity : targetEntities) {
 				if (targetEntity.getEntityUuid() != null) {
@@ -176,7 +177,7 @@ public class ReadAuditServiceImpl extends BaseOpenmrsService implements ReadAudi
 					String safeIp = ipAddress != null ? ipAddress : "unknown";
 					String key = userKey + ":" + safeIp + ":" + targetEntity.getEntityUuid();
 					if (appCacheManager.get(key) == null) {
-						appCacheManager.set(key, true);
+						cacheKeysToSet.add(key);
 						newTargetEntities.add(targetEntity);
 					}
 				}
@@ -187,7 +188,12 @@ public class ReadAuditServiceImpl extends BaseOpenmrsService implements ReadAudi
 				        .username(username).userUUID(userUUID).userAgent(userAgent).sessionId(sessionId).ipAddress(ipAddress)
 				        .isReadSuccess(isReadSuccess).build();
 				readAuditLog.setTargets(newTargetEntities);
-				readAuditWorker.submitTask(readAuditLog);
+				boolean isSubmitted = readAuditWorker.submitTask(readAuditLog);
+				if (isSubmitted) {
+					for (String key : cacheKeysToSet) {
+						appCacheManager.set(key, true);
+					}
+				}
 				log.debug("Submitted the Read Audit log to worker");
 			}
 		}
