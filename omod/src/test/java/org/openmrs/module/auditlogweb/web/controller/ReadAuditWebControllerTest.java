@@ -26,11 +26,13 @@ import java.util.List;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 class ReadAuditWebControllerTest {
 	
@@ -85,7 +87,7 @@ class ReadAuditWebControllerTest {
 		
 		mockMvc.perform(get("/module/auditlogweb/readauditlogs.form")).andExpect(status().isOk())
 		        .andExpect(view().name("/module/auditlogweb/readAuditLogs"))
-		        .andExpect(model().attribute("errorMessage", "An error occurred while loading security audit logs."))
+		        .andExpect(model().attribute("errorMessage", "An error occurred while loading read audit logs."))
 		        .andExpect(model().attribute("readAuditLogs", hasSize(0)));
 	}
 }

@@ -78,8 +78,8 @@ public class ReadAuditWebController {
 			return new ModelAndView(ACCESS_DENIED_VIEW, model);
 		}
 		catch (Exception e) {
-			log.error("Failed to load security audit logs", e);
-			model.addAttribute("errorMessage", "An error occurred while loading security audit logs.");
+			log.error("Failed to load read audit logs", e);
+			model.addAttribute("errorMessage", "An error occurred while loading read audit logs.");
 			model.addAttribute("readAuditLogs", Collections.emptyList());
 			
 		}

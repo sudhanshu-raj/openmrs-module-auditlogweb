@@ -128,7 +128,6 @@ public class ReadAuditAOP {
 	        + "execution(* org.openmrs.api.OrderService.getAllOrders*(..)) || "
 	        + "execution(* org.openmrs.api.OrderService.getActiveOrders(..)) || "
 	        + "execution(* org.openmrs.api.OrderService.getCareSetting*(..)) || "
-	        + "execution(* org.openmrs.api.OrderService.discontinueOrder(..)) || "
 	        + "execution(* org.openmrs.api.OrderService.getSubtypes(..)) || "
 	        + "execution(* org.openmrs.api.OrderService.getDrug*(..)) || "
 	        + "execution(* org.openmrs.api.OrderService.getTestSpecimenSources(..)) ||"
