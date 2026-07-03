@@ -129,6 +129,7 @@
                 <table class="related-table">
                     <thead>
                         <tr>
+                            <th>ID</th>
                             <th>Time</th>
                             <th>Type</th>
                             <th>User</th>
@@ -138,6 +139,9 @@
                     <tbody>
                         <c:forEach var="relEvent" items="${relatedEvents}">
                             <tr <c:if test="${relEvent.id == event.id}">class="current-event"</c:if>>
+                                <td>
+                                    <c:out value="${relEvent.id}"/>
+                                </td>
                                 <td><fmt:formatDate value="${relEvent.eventTime}" pattern="HH:mm:ss" /></td>
                                 <td>
                                     <c:choose>
