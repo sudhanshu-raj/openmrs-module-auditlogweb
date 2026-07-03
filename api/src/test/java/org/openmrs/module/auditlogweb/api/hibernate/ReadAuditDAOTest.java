@@ -23,6 +23,7 @@ import org.openmrs.module.auditlogweb.ReadAuditLog;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Arrays;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -50,6 +51,9 @@ public class ReadAuditDAOTest {
 	
 	@Mock
 	private Query<Long> countQuery;
+	
+	@Mock
+	private Query<String> stringQuery;
 	
 	@BeforeEach
 	void setUp() {
@@ -146,6 +150,20 @@ public class ReadAuditDAOTest {
 		assertThat(result, hasSize(1));
 		verify(readAuditLogQuery).setParameter("sessionId", "session-123");
 		verify(readAuditLogQuery).setMaxResults(5);
+	}
+	
+	@Test
+	void shouldGetEntityTypes() {
+		List<String> expected = Arrays.asList("Concept", "Patient");
+		when(session.createQuery(anyString(), eq(String.class))).thenReturn(stringQuery);
+		when(stringQuery.getResultList()).thenReturn(expected);
+		
+		List<String> result = readAuditDAO.getEntityTypes();
+		
+		assertNotNull(result);
+		assertThat(result, hasSize(2));
+		assertThat(result.get(0), is("Concept"));
+		assertThat(result.get(1), is("Patient"));
 	}
 	
 	private ReadAuditLog buildReadAuditLog(String entityName, boolean isReadSuccess, String username) {

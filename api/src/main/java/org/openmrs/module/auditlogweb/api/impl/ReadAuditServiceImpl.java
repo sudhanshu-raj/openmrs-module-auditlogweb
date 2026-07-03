@@ -249,4 +249,9 @@ public class ReadAuditServiceImpl extends BaseOpenmrsService implements ReadAudi
 		}
 		return null;
 	}
+	
+	@Override
+	public List<String> getEntityTypes() {
+		return readAuditDAO.getEntityTypes();
+	}
 }

@@ -24,7 +24,6 @@ import org.springframework.web.servlet.ModelAndView;
 
 import org.openmrs.module.auditlogweb.api.utils.UtilClass;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Collections;
@@ -88,6 +87,16 @@ public class ReadAuditWebController {
 	}
 	
 	private List<String> getEntityTypes() {
-		return Arrays.asList("PATIENT");
+		try {
+			List<String> types = readAuditService.getEntityTypes();
+			if (types == null || types.isEmpty()) {
+				return Collections.singletonList("Patient");
+			}
+			return types;
+		}
+		catch (Exception e) {
+			log.warn("Failed to retrieve dynamic entity types from database", e);
+			return Collections.singletonList("Patient");
+		}
 	}
 }

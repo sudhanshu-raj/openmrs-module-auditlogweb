@@ -26,4 +26,6 @@ public interface ReadAuditDAO {
 	ReadAuditLog getReadAuditLogById(Integer id);
 	
 	List<ReadAuditLog> getRelatedReadLogs(String sessionId, int limit);
+	
+	List<String> getEntityTypes();
 }

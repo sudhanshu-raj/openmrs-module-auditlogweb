@@ -77,6 +77,13 @@ public class HibernateReadAuditDao implements ReadAuditDAO {
 		return query.getResultList();
 	}
 	
+	@Override
+	public List<String> getEntityTypes() {
+		Query<String> query = sessionFactory.getCurrentSession()
+		        .createQuery("select distinct e.entityName from ReadAuditLog e order by e.entityName", String.class);
+		return query.getResultList();
+	}
+	
 	private String buildQueryConditions(String baseQuery, String entityType, String username, Date startDate, Date endDate) {
 		StringBuilder hql = new StringBuilder(baseQuery);
 		if (entityType != null && !entityType.trim().isEmpty()) {

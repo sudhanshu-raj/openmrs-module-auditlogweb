@@ -36,6 +36,9 @@ public interface ReadAuditService {
 	@Authorized(AuditLogConstants.VIEW_READ_AUDIT_LOGS)
 	List<ReadAuditLog> getRelatedReadLogs(String sessionId, int limit);
 	
+	@Authorized(AuditLogConstants.VIEW_READ_AUDIT_LOGS)
+	List<String> getEntityTypes();
+	
 	Object auditReadRequest(ProceedingJoinPoint joinPoint) throws Throwable;
 	
 	void saveReadAuditRequest(String entityName, boolean isReadSuccess, Object result);
