@@ -45,6 +45,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.any;
 
 class ReadAuditServiceImplTest {
@@ -318,6 +319,37 @@ class ReadAuditServiceImplTest {
 			
 			verify(appCacheManager, never()).set(any(), any());
 			verify(readAuditWorker, never()).submitTask(any(ReadAuditLog.class));
+		}
+		finally {
+			AuditLogContext.clear();
+		}
+	}
+	
+	@Test
+	void shouldSaveReadAuditRequestWithFallbackUserWhenContextHasNoUser() {
+		AuditLogContext auditContext = new AuditLogContext();
+		auditContext.setIpAddress("127.0.0.1");
+		auditContext.setUserAgent("user-agent");
+		auditContext.setSessionId("session-id");
+		
+		AuditLogContext.set(auditContext);
+		try (MockedStatic<Context> contextMock = mockStatic(Context.class);
+		        MockedStatic<Daemon> daemonMock = mockStatic(Daemon.class)) {
+			User mockUser = mock(User.class);
+			when(mockUser.getUsername()).thenReturn("fallback-user");
+			when(mockUser.getUuid()).thenReturn("fallback-uuid");
+			
+			contextMock.when(Context::isAuthenticated).thenReturn(true);
+			contextMock.when(Context::getAuthenticatedUser).thenReturn(mockUser);
+			daemonMock.when(() -> Daemon.isDaemonUser(mockUser)).thenReturn(false);
+			
+			OpenmrsObject mockObject = mock(OpenmrsObject.class);
+			when(mockObject.getId()).thenReturn(1);
+			when(mockObject.getUuid()).thenReturn("entity-uuid");
+			
+			readAuditService.saveReadAuditRequest("Patient", true, mockObject);
+			
+			verify(readAuditWorker).submitTask(any(ReadAuditLog.class));
 		}
 		finally {
 			AuditLogContext.clear();

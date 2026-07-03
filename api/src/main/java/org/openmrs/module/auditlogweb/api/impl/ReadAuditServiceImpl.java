@@ -146,7 +146,9 @@ public class ReadAuditServiceImpl extends BaseOpenmrsService implements ReadAudi
 				ipAddress = ctx.getIpAddress();
 				userAgent = ctx.getUserAgent();
 				sessionId = ctx.getSessionId();
-			} else {
+			}
+			
+			if (userUUID == null) {
 				if (Context.isAuthenticated()) {
 					User user = Context.getAuthenticatedUser();
 					if (user != null && Daemon.isDaemonUser(user)) {
