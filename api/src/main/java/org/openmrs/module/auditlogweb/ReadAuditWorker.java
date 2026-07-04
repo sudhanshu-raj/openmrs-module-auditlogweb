@@ -23,6 +23,11 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+/**
+ * This has been used for the read audit log request to put the log in the queue and then a
+ * background thread will consume this or may be in a batch upto 49 logs and saves the log either
+ * once or one by one.
+ */
 @Component
 public class ReadAuditWorker {
 	
