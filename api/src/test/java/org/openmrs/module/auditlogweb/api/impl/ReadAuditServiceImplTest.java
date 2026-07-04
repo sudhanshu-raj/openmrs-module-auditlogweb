@@ -21,6 +21,7 @@ import org.openmrs.module.auditlogweb.AppCacheManager;
 import org.openmrs.module.auditlogweb.ReadAuditLog;
 import org.openmrs.module.auditlogweb.ReadAuditWorker;
 import org.openmrs.module.auditlogweb.api.AuditLogContext;
+import org.openmrs.module.auditlogweb.api.ReadAuditService;
 import org.openmrs.module.auditlogweb.api.dao.ReadAuditDAO;
 
 import java.lang.reflect.Method;
@@ -268,14 +269,7 @@ class ReadAuditServiceImplTest {
 	
 	@Test
 	void shouldSaveReadAuditLogWhenItsNewInCache() {
-		AuditLogContext auditContext = new AuditLogContext();
-		auditContext.setLoggedInUsername("test-user");
-		auditContext.setLoggedInUserUUID("test-user-uuid");
-		auditContext.setIpAddress("127.0.0.1");
-		auditContext.setUserAgent("user-agent");
-		auditContext.setSessionId("session-id");
-		
-		AuditLogContext.set(auditContext);
+		buildAuditContext();
 		
 		try {
 			OpenmrsObject mockObject = mock(OpenmrsObject.class);
@@ -297,14 +291,7 @@ class ReadAuditServiceImplTest {
 	
 	@Test
 	void shouldNotSaveReadAuditLogWhenItsAlreadyInCache() {
-		AuditLogContext auditContext = new AuditLogContext();
-		auditContext.setLoggedInUsername("test-user");
-		auditContext.setLoggedInUserUUID("test-user-uuid");
-		auditContext.setIpAddress("127.0.0.1");
-		auditContext.setUserAgent("user-agent");
-		auditContext.setSessionId("session-id");
-		
-		AuditLogContext.set(auditContext);
+		buildAuditContext();
 		
 		try {
 			OpenmrsObject mockObject = mock(OpenmrsObject.class);
@@ -357,14 +344,7 @@ class ReadAuditServiceImplTest {
 	
 	@Test
 	void shouldNotSaveReadAuditLogToCacheWhenSubmitTaskFails() {
-		AuditLogContext auditContext = new AuditLogContext();
-		auditContext.setLoggedInUsername("test-user");
-		auditContext.setLoggedInUserUUID("test-user-uuid");
-		auditContext.setIpAddress("127.0.0.1");
-		auditContext.setUserAgent("user-agent");
-		auditContext.setSessionId("session-id");
-		
-		AuditLogContext.set(auditContext);
+		buildAuditContext();
 		
 		try {
 			OpenmrsObject mockObject = mock(OpenmrsObject.class);
@@ -386,6 +366,33 @@ class ReadAuditServiceImplTest {
 	}
 	
 	@Test
+	void shouldSaveReadAuditLogSynchronouslyIfQueueIsFull() {
+		buildAuditContext();
+		
+		try (MockedStatic<Context> contextMock = mockStatic(Context.class)) {
+			ReadAuditService mockService = mock(ReadAuditService.class);
+			contextMock.when(() -> Context.getService(ReadAuditService.class)).thenReturn(mockService);
+			
+			OpenmrsObject mockObject = mock(OpenmrsObject.class);
+			when(mockObject.getId()).thenReturn(1);
+			when(mockObject.getUuid()).thenReturn("test-uuid");
+			
+			String key = "test-user:127.0.0.1:test-uuid";
+			when(appCacheManager.get(key)).thenReturn(null);
+			when(readAuditWorker.submitTask(any(ReadAuditLog.class))).thenReturn(false);
+			
+			readAuditService.saveReadAuditRequest("Patient", true, mockObject);
+			
+			verify(readAuditWorker).submitTask(any(ReadAuditLog.class));
+			verify(mockService).logReadAudit(any(ReadAuditLog.class));
+			verify(appCacheManager).set(key, true);
+		}
+		finally {
+			AuditLogContext.clear();
+		}
+	}
+	
+	@Test
 	void shouldAbleToGetEntityTypes() {
 		List<String> expected = Arrays.asList("Patient", "Concept");
 		when(readAuditDAO.getEntityTypes()).thenReturn(expected);
@@ -394,6 +401,17 @@ class ReadAuditServiceImplTest {
 		
 		assertSame(expected, result);
 		verify(readAuditDAO).getEntityTypes();
+	}
+	
+	void buildAuditContext() {
+		AuditLogContext auditContext = new AuditLogContext();
+		auditContext.setLoggedInUsername("test-user");
+		auditContext.setLoggedInUserUUID("test-user-uuid");
+		auditContext.setIpAddress("127.0.0.1");
+		auditContext.setUserAgent("user-agent");
+		auditContext.setSessionId("session-id");
+		
+		AuditLogContext.set(auditContext);
 	}
 	
 	interface TestService {

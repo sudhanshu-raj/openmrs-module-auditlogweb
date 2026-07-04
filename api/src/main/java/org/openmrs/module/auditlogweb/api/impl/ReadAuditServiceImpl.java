@@ -193,8 +193,18 @@ public class ReadAuditServiceImpl extends BaseOpenmrsService implements ReadAudi
 					for (String key : cacheKeysToSet) {
 						appCacheManager.set(key, true);
 					}
+				} else {
+					log.warn("Queue is full, need to save the log synchronously");
+					try {
+						Context.getService(ReadAuditService.class).logReadAudit(readAuditLog);
+						for (String key : cacheKeysToSet) {
+							appCacheManager.set(key, true);
+						}
+					}
+					catch (Exception e) {
+						log.error("Error while saving the read audit log", e);
+					}
 				}
-				log.debug("Submitted the Read Audit log to worker");
 			}
 		}
 		catch (Exception e) {
