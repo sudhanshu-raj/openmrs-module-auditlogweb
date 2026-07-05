@@ -28,6 +28,11 @@ import org.openmrs.module.auditlogweb.api.utils.AuditSecurityEventType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 // It logs the event related to authentication like login success/failed and account locked.
 @Aspect
@@ -45,9 +50,40 @@ public class AuthenticationAdvice {
 	public Object authenticate(ProceedingJoinPoint joinPoint) throws Throwable {
 		
 		AuditLogContext ctx = AuditLogContext.get();
-		String sessionId = ctx != null ? ctx.getSessionId() : null;
-		String ipAddress = ctx != null ? ctx.getIpAddress() : null;
-		String userAgent = ctx != null ? ctx.getUserAgent() : null;
+		String sessionId = null;
+		String ipAddress = null;
+		String userAgent = null;
+		
+		if (ctx != null) {
+			sessionId = ctx.getSessionId();
+			ipAddress = ctx.getIpAddress();
+			userAgent = ctx.getUserAgent();
+		} else {
+			try {
+				ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+				if (attributes != null) {
+					HttpServletRequest request = attributes.getRequest();
+					if (request != null) {
+						userAgent = request.getHeader("User-Agent");
+						
+						String forwarded = request.getHeader("X-Forwarded-For");
+						if (forwarded != null && !forwarded.isEmpty()) {
+							ipAddress = forwarded.split(",")[0].trim();
+						} else {
+							ipAddress = request.getRemoteAddr();
+						}
+						
+						HttpSession session = request.getSession(false);
+						if (session != null) {
+							sessionId = session.getId();
+						}
+					}
+				}
+			}
+			catch (Exception e) {
+				log.warn("Failed to extract context via RequestContextHolder", e);
+			}
+		}
 		
 		try {
 			Object result = joinPoint.proceed();
@@ -78,7 +114,7 @@ public class AuthenticationAdvice {
 			
 			// Marks current pre-fixation session id so SessionTimeoutListener ignores it.
 			// The login flow invalidates that session later during fixation protection.
-			markSessionAsLoginFixation();
+			markSessionAsLoginFixation(sessionId);
 			
 			return result;
 		}
@@ -198,9 +234,7 @@ public class AuthenticationAdvice {
 		return "{\"failureReason\":\"" + reason + "\",\"accountLocked\":" + isAccountLocked + "}";
 	}
 	
-	private void markSessionAsLoginFixation() {
-		AuditLogContext ctx = AuditLogContext.get();
-		String sessionId = ctx != null ? ctx.getSessionId() : null;
+	private void markSessionAsLoginFixation(String sessionId) {
 		if (sessionId == null) {
 			return;
 		}

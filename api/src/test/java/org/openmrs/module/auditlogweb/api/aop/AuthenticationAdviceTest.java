@@ -29,6 +29,11 @@ import org.openmrs.module.auditlogweb.api.AuditLogContext;
 import org.openmrs.module.auditlogweb.api.listener.LoginFixationSessionTracker;
 import org.openmrs.module.auditlogweb.api.utils.AuditSecurityEventType;
 import org.openmrs.util.OpenmrsConstants;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -106,6 +111,36 @@ class AuthenticationAdviceTest {
 		    USER_AGENT, SESSION_ID, "");
 		assertTrue(LoginFixationSessionTracker.consume(SESSION_ID));
 		assertFalse(LoginFixationSessionTracker.consume(SESSION_ID));
+	}
+	
+	@Test
+	void shouldLogSuccessfulLoginAndMarkSessionAsLoginFixation_EvenIfAuditLogContextIsNullDueToFilterChainOrder()
+	        throws Throwable {
+		HttpServletRequest request = mock(HttpServletRequest.class);
+		HttpSession httpSession = mock(HttpSession.class);
+		
+		when(request.getHeader("User-Agent")).thenReturn(USER_AGENT);
+		when(request.getRemoteAddr()).thenReturn(IP_ADDRESS);
+		when(request.getSession(false)).thenReturn(httpSession);
+		when(httpSession.getId()).thenReturn(SESSION_ID);
+		
+		ServletRequestAttributes attributes = new ServletRequestAttributes(request);
+		RequestContextHolder.setRequestAttributes(attributes);
+		
+		try {
+			when(joinPoint.proceed()).thenReturn(user);
+			
+			Object result = advice.authenticate(joinPoint);
+			
+			assertSame(user, result);
+			verify(auditService).logSecurityEvent(AuditSecurityEventType.LOGIN_SUCCESS, USERNAME, "user-uuid-123",
+			    IP_ADDRESS, USER_AGENT, SESSION_ID, "");
+			assertTrue(LoginFixationSessionTracker.consume(SESSION_ID));
+			assertFalse(LoginFixationSessionTracker.consume(SESSION_ID));
+		}
+		finally {
+			RequestContextHolder.resetRequestAttributes();
+		}
 	}
 	
 	@Test
