@@ -12,7 +12,7 @@
 -->
 
 <module configVersion="1.2">
-	
+
 	<!-- Base Module Properties -->
 	<id>${project.parent.artifactId}</id>
 	<name>${project.parent.name}</name>
@@ -26,16 +26,17 @@
 	<activator>org.openmrs.module.auditlogweb.AuditlogwebActivator</activator>
 
 	<require_version>2.7.0</require_version>
-	
+
+	<aware_of_modules>
+		<aware_of_module>org.openmrs.module.legacyui</aware_of_module>
+		<aware_of_module>org.openmrs.module.webservices.rest</aware_of_module>
+	</aware_of_modules>
+
 	<!-- Extensions -->
 	<extension>
 		<point>org.openmrs.admin.list</point>
 		<class>org.openmrs.module.auditlogweb.extension.html.AdminList</class>
 	</extension>
-
-	<aware_of_modules>
-		<aware_of_module>org.openmrs.module.legacyui</aware_of_module>
-	</aware_of_modules>
 
 	<privileges>
 		<privilege>

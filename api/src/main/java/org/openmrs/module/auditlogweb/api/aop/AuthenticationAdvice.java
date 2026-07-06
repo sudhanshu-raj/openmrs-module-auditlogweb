@@ -28,11 +28,6 @@ import org.openmrs.module.auditlogweb.api.utils.AuditSecurityEventType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 // It logs the event related to authentication like login success/failed and account locked.
 @Aspect
@@ -58,31 +53,6 @@ public class AuthenticationAdvice {
 			sessionId = ctx.getSessionId();
 			ipAddress = ctx.getIpAddress();
 			userAgent = ctx.getUserAgent();
-		} else {
-			try {
-				ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-				if (attributes != null) {
-					HttpServletRequest request = attributes.getRequest();
-					if (request != null) {
-						userAgent = request.getHeader("User-Agent");
-						
-						String forwarded = request.getHeader("X-Forwarded-For");
-						if (forwarded != null && !forwarded.isEmpty()) {
-							ipAddress = forwarded.split(",")[0].trim();
-						} else {
-							ipAddress = request.getRemoteAddr();
-						}
-						
-						HttpSession session = request.getSession(false);
-						if (session != null) {
-							sessionId = session.getId();
-						}
-					}
-				}
-			}
-			catch (Exception e) {
-				log.warn("Failed to extract context via RequestContextHolder", e);
-			}
 		}
 		
 		try {

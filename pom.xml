@@ -39,7 +39,6 @@
 		<byteBuddyVersion>1.17.6</byteBuddyVersion>
 		<webservicesRestVersion>2.49.0</webservicesRestVersion>
 		<jsonPathVersion>2.9.0</jsonPathVersion>
-		<springVersion>5.3.30</springVersion>
 	</properties>
 
 	<repositories>
