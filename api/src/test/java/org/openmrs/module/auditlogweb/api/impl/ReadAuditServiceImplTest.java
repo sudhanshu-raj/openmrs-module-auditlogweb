@@ -9,55 +9,31 @@
  */
 package org.openmrs.module.auditlogweb.api.impl;
 
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.reflect.MethodSignature;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.ArgumentCaptor;
 import org.mockito.MockitoAnnotations;
-import org.openmrs.OpenmrsObject;
-import org.openmrs.module.auditlogweb.AppCacheManager;
 import org.openmrs.module.auditlogweb.ReadAuditLog;
-import org.openmrs.module.auditlogweb.ReadAuditWorker;
-import org.openmrs.module.auditlogweb.api.AuditLogContext;
-import org.openmrs.module.auditlogweb.api.ReadAuditService;
 import org.openmrs.module.auditlogweb.api.dao.ReadAuditDAO;
 
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import org.mockito.MockedStatic;
-import org.openmrs.User;
-import org.openmrs.api.context.Context;
-import org.openmrs.api.context.Daemon;
-
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.any;
 
 class ReadAuditServiceImplTest {
 	
 	@Mock
 	private ReadAuditDAO readAuditDAO;
-	
-	@Mock
-	private AppCacheManager appCacheManager;
-	
-	@Mock
-	private ReadAuditWorker readAuditWorker;
 	
 	@InjectMocks
 	private ReadAuditServiceImpl readAuditService;
@@ -65,10 +41,6 @@ class ReadAuditServiceImplTest {
 	@BeforeEach
 	void setUp() {
 		MockitoAnnotations.openMocks(this);
-		org.springframework.test.util.ReflectionTestUtils.setField(readAuditService, "appCacheManager", appCacheManager);
-		org.springframework.test.util.ReflectionTestUtils.setField(readAuditService, "readAuditWorker", readAuditWorker);
-		when(appCacheManager.get(any())).thenReturn(null);
-		when(readAuditWorker.submitTask(any(ReadAuditLog.class))).thenReturn(true);
 	}
 	
 	@Test
@@ -177,258 +149,6 @@ class ReadAuditServiceImplTest {
 	}
 	
 	@Test
-	void shouldProceedAndLogOnAuditReadRequestSuccess() throws Throwable {
-		ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
-		MethodSignature signature = mock(MethodSignature.class);
-		Method method = TestService.class.getMethod("getSomeData");
-		
-		when(joinPoint.getTarget()).thenReturn(new Object());
-		when(joinPoint.getSignature()).thenReturn(signature);
-		when(signature.getMethod()).thenReturn(method);
-		when(joinPoint.proceed()).thenReturn("some result");
-		
-		Object result = readAuditService.auditReadRequest(joinPoint);
-		
-		assertEquals("some result", result);
-		verify(joinPoint).proceed();
-	}
-	
-	@Test
-	void shouldProceedAndThrowOnAuditReadRequestFailure() throws Throwable {
-		ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
-		MethodSignature signature = mock(MethodSignature.class);
-		Method method = TestService.class.getMethod("getSomeData");
-		RuntimeException expectedException = new RuntimeException("test exception");
-		
-		when(joinPoint.getTarget()).thenReturn(new Object());
-		when(joinPoint.getSignature()).thenReturn(signature);
-		when(signature.getMethod()).thenReturn(method);
-		when(joinPoint.proceed()).thenThrow(expectedException);
-		
-		RuntimeException thrown = assertThrows(RuntimeException.class, () -> readAuditService.auditReadRequest(joinPoint));
-		
-		assertEquals(expectedException, thrown);
-		verify(joinPoint).proceed();
-	}
-	
-	@Test
-	void shouldSaveReadAuditRequestWithFallbackUserWhenContextIsNull() {
-		try (MockedStatic<Context> contextMock = mockStatic(Context.class);
-		        MockedStatic<Daemon> daemonMock = mockStatic(Daemon.class)) {
-			User mockUser = mock(User.class);
-			when(mockUser.getUsername()).thenReturn("fallback-user");
-			when(mockUser.getUuid()).thenReturn("fallback-uuid");
-			
-			contextMock.when(Context::isAuthenticated).thenReturn(true);
-			contextMock.when(Context::getAuthenticatedUser).thenReturn(mockUser);
-			daemonMock.when(() -> Daemon.isDaemonUser(mockUser)).thenReturn(false);
-			
-			org.openmrs.OpenmrsObject mockObject = mock(org.openmrs.OpenmrsObject.class);
-			when(mockObject.getId()).thenReturn(1);
-			when(mockObject.getUuid()).thenReturn("entity-uuid");
-			
-			readAuditService.saveReadAuditRequest("Patient", true, mockObject);
-			
-			verify(readAuditWorker).submitTask(any(ReadAuditLog.class));
-		}
-	}
-	
-	@Test
-	void shouldSkipSaveReadAuditRequestWhenUserIsDaemon() {
-		try (MockedStatic<Context> contextMock = mockStatic(Context.class);
-		        MockedStatic<Daemon> daemonMock = mockStatic(Daemon.class)) {
-			User mockUser = mock(User.class);
-			
-			contextMock.when(Context::isAuthenticated).thenReturn(true);
-			contextMock.when(Context::getAuthenticatedUser).thenReturn(mockUser);
-			daemonMock.when(() -> Daemon.isDaemonUser(mockUser)).thenReturn(true);
-			
-			OpenmrsObject mockObject = mock(OpenmrsObject.class);
-			when(mockObject.getId()).thenReturn(1);
-			when(mockObject.getUuid()).thenReturn("entity-uuid");
-			
-			readAuditService.saveReadAuditRequest("Patient", true, mockObject);
-			
-			verify(readAuditWorker, never()).submitTask(any(ReadAuditLog.class));
-		}
-	}
-	
-	@Test
-	void shouldSkipSaveReadAuditRequestWhenUserUUIDIsNull() {
-		try (MockedStatic<Context> contextMock = mockStatic(Context.class)) {
-			contextMock.when(Context::isAuthenticated).thenReturn(false);
-			
-			OpenmrsObject mockObject = mock(OpenmrsObject.class);
-			when(mockObject.getId()).thenReturn(1);
-			when(mockObject.getUuid()).thenReturn("entity-uuid");
-			
-			readAuditService.saveReadAuditRequest("Patient", true, mockObject);
-			
-			verify(readAuditWorker, never()).submitTask(any(ReadAuditLog.class));
-		}
-	}
-	
-	@Test
-	void shouldSaveReadAuditLogWhenItsNewInCache() {
-		buildAuditContext();
-		
-		try {
-			OpenmrsObject mockObject = mock(OpenmrsObject.class);
-			when(mockObject.getId()).thenReturn(1);
-			when(mockObject.getUuid()).thenReturn("test-uuid");
-			
-			String key = "test-user:127.0.0.1:test-uuid";
-			when(appCacheManager.get(key)).thenReturn(null);
-			
-			readAuditService.saveReadAuditRequest("Patient", true, mockObject);
-			
-			verify(readAuditWorker).submitTask(any(ReadAuditLog.class));
-			verify(appCacheManager).set(key, true);
-		}
-		finally {
-			AuditLogContext.clear();
-		}
-	}
-	
-	@Test
-	void shouldNotSaveReadAuditLogWhenItsAlreadyInCache() {
-		buildAuditContext();
-		
-		try {
-			OpenmrsObject mockObject = mock(OpenmrsObject.class);
-			when(mockObject.getId()).thenReturn(1);
-			when(mockObject.getUuid()).thenReturn("test-uuid");
-			
-			String key = "test-user:127.0.0.1:test-uuid";
-			when(appCacheManager.get(key)).thenReturn(true);
-			
-			readAuditService.saveReadAuditRequest("Patient", true, mockObject);
-			
-			verify(appCacheManager, never()).set(any(), any());
-			verify(readAuditWorker, never()).submitTask(any(ReadAuditLog.class));
-		}
-		finally {
-			AuditLogContext.clear();
-		}
-	}
-	
-	@Test
-	void shouldSaveReadAuditRequestWithFallbackUserWhenContextHasNoUser() {
-		AuditLogContext auditContext = new AuditLogContext();
-		auditContext.setIpAddress("127.0.0.1");
-		auditContext.setUserAgent("user-agent");
-		auditContext.setSessionId("session-id");
-		
-		AuditLogContext.set(auditContext);
-		try (MockedStatic<Context> contextMock = mockStatic(Context.class);
-		        MockedStatic<Daemon> daemonMock = mockStatic(Daemon.class)) {
-			User mockUser = mock(User.class);
-			when(mockUser.getUsername()).thenReturn("fallback-user");
-			when(mockUser.getUuid()).thenReturn("fallback-uuid");
-			
-			contextMock.when(Context::isAuthenticated).thenReturn(true);
-			contextMock.when(Context::getAuthenticatedUser).thenReturn(mockUser);
-			daemonMock.when(() -> Daemon.isDaemonUser(mockUser)).thenReturn(false);
-			
-			OpenmrsObject mockObject = mock(OpenmrsObject.class);
-			when(mockObject.getId()).thenReturn(1);
-			when(mockObject.getUuid()).thenReturn("entity-uuid");
-			
-			readAuditService.saveReadAuditRequest("Patient", true, mockObject);
-			
-			verify(readAuditWorker).submitTask(any(ReadAuditLog.class));
-		}
-		finally {
-			AuditLogContext.clear();
-		}
-	}
-	
-	@Test
-	void shouldNotSaveReadAuditLogToCacheWhenSubmitTaskFails() {
-		buildAuditContext();
-		
-		try {
-			OpenmrsObject mockObject = mock(OpenmrsObject.class);
-			when(mockObject.getId()).thenReturn(1);
-			when(mockObject.getUuid()).thenReturn("test-uuid");
-			
-			String key = "test-user:127.0.0.1:test-uuid";
-			when(appCacheManager.get(key)).thenReturn(null);
-			when(readAuditWorker.submitTask(any(ReadAuditLog.class))).thenReturn(false);
-			
-			readAuditService.saveReadAuditRequest("Patient", true, mockObject);
-			
-			verify(readAuditWorker).submitTask(any(ReadAuditLog.class));
-			verify(appCacheManager, never()).set(any(), any());
-		}
-		finally {
-			AuditLogContext.clear();
-		}
-	}
-	
-	@Test
-	void shouldSaveReadAuditLogSynchronouslyIfQueueIsFull() {
-		buildAuditContext();
-		
-		try (MockedStatic<Context> contextMock = mockStatic(Context.class)) {
-			ReadAuditService mockService = mock(ReadAuditService.class);
-			contextMock.when(() -> Context.getService(ReadAuditService.class)).thenReturn(mockService);
-			
-			OpenmrsObject mockObject = mock(OpenmrsObject.class);
-			when(mockObject.getId()).thenReturn(1);
-			when(mockObject.getUuid()).thenReturn("test-uuid");
-			
-			String key = "test-user:127.0.0.1:test-uuid";
-			when(appCacheManager.get(key)).thenReturn(null);
-			when(readAuditWorker.submitTask(any(ReadAuditLog.class))).thenReturn(false);
-			
-			readAuditService.saveReadAuditRequest("Patient", true, mockObject);
-			
-			verify(readAuditWorker).submitTask(any(ReadAuditLog.class));
-			verify(mockService).logReadAudit(any(ReadAuditLog.class));
-			verify(appCacheManager).set(key, true);
-		}
-		finally {
-			AuditLogContext.clear();
-		}
-	}
-	
-	@Test
-	void shouldSaveUnAuthenticatedUserAsAnonymousUser() {
-		AuditLogContext auditContext = new AuditLogContext();
-		auditContext.setLoggedInUsername(null);
-		auditContext.setLoggedInUserUUID(null);
-		auditContext.setIpAddress("127.0.0.1");
-		auditContext.setUserAgent("user-agent");
-		auditContext.setSessionId("session-id");
-		
-		AuditLogContext.set(auditContext);
-		
-		try {
-			OpenmrsObject mockObject = mock(OpenmrsObject.class);
-			when(mockObject.getId()).thenReturn(1);
-			when(mockObject.getUuid()).thenReturn("test-uuid");
-			
-			String key = "anonymous:127.0.0.1:test-uuid";
-			when(appCacheManager.get(key)).thenReturn(null);
-			
-			readAuditService.saveReadAuditRequest("Patient", false, mockObject);
-			
-			ArgumentCaptor<ReadAuditLog> logCaptor = ArgumentCaptor.forClass(ReadAuditLog.class);
-			verify(readAuditWorker).submitTask(logCaptor.capture());
-			
-			ReadAuditLog capturedLog = logCaptor.getValue();
-			assertEquals("anonymous", capturedLog.getUsername());
-			assertEquals("anonymous", capturedLog.getUserUUID());
-			
-			verify(appCacheManager).set(key, true);
-		}
-		finally {
-			AuditLogContext.clear();
-		}
-	}
-	
-	@Test
 	void shouldAbleToGetEntityTypes() {
 		List<String> expected = Arrays.asList("Patient", "Concept");
 		when(readAuditDAO.getEntityTypes()).thenReturn(expected);
@@ -437,22 +157,5 @@ class ReadAuditServiceImplTest {
 		
 		assertSame(expected, result);
 		verify(readAuditDAO).getEntityTypes();
-	}
-	
-	void buildAuditContext() {
-		AuditLogContext auditContext = new AuditLogContext();
-		auditContext.setLoggedInUsername("test-user");
-		auditContext.setLoggedInUserUUID("test-user-uuid");
-		auditContext.setIpAddress("127.0.0.1");
-		auditContext.setUserAgent("user-agent");
-		auditContext.setSessionId("session-id");
-		
-		AuditLogContext.set(auditContext);
-	}
-	
-	interface TestService {
-		
-		String getSomeData();
-		
 	}
 }

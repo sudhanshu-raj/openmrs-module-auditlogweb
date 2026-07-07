@@ -13,8 +13,6 @@ import org.openmrs.annotation.Authorized;
 import org.openmrs.module.auditlogweb.ReadAuditLog;
 import org.openmrs.module.auditlogweb.api.utils.AuditLogConstants;
 
-import org.aspectj.lang.ProceedingJoinPoint;
-
 import java.util.Date;
 import java.util.List;
 
@@ -38,9 +36,5 @@ public interface ReadAuditService {
 	
 	@Authorized(AuditLogConstants.VIEW_READ_AUDIT_LOGS)
 	List<String> getEntityTypes();
-	
-	Object auditReadRequest(ProceedingJoinPoint joinPoint) throws Throwable;
-	
-	void saveReadAuditRequest(String entityName, boolean isReadSuccess, Object result);
 	
 }
