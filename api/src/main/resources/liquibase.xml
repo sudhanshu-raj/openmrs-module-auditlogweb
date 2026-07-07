@@ -138,7 +138,7 @@
                 <indexExists indexName="read_audit_log_entity_name_idx"/>
             </not>
         </preConditions>
-        <createIndex tableName="read_audit_log" indexName="read_read_audit_log_entity_name_idx">
+        <createIndex tableName="read_audit_log" indexName="read_audit_log_entity_name_idx">
             <column name="entity_name"/>
         </createIndex>
     </changeSet>

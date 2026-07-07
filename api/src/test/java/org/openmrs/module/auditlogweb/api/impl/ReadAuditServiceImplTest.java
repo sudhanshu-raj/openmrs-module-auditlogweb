@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockitoAnnotations;
 import org.openmrs.OpenmrsObject;
 import org.openmrs.module.auditlogweb.AppCacheManager;
@@ -385,6 +386,41 @@ class ReadAuditServiceImplTest {
 			
 			verify(readAuditWorker).submitTask(any(ReadAuditLog.class));
 			verify(mockService).logReadAudit(any(ReadAuditLog.class));
+			verify(appCacheManager).set(key, true);
+		}
+		finally {
+			AuditLogContext.clear();
+		}
+	}
+	
+	@Test
+	void shouldSaveUnAuthenticatedUserAsAnonymousUser() {
+		AuditLogContext auditContext = new AuditLogContext();
+		auditContext.setLoggedInUsername(null);
+		auditContext.setLoggedInUserUUID(null);
+		auditContext.setIpAddress("127.0.0.1");
+		auditContext.setUserAgent("user-agent");
+		auditContext.setSessionId("session-id");
+		
+		AuditLogContext.set(auditContext);
+		
+		try {
+			OpenmrsObject mockObject = mock(OpenmrsObject.class);
+			when(mockObject.getId()).thenReturn(1);
+			when(mockObject.getUuid()).thenReturn("test-uuid");
+			
+			String key = "anonymous:127.0.0.1:test-uuid";
+			when(appCacheManager.get(key)).thenReturn(null);
+			
+			readAuditService.saveReadAuditRequest("Patient", false, mockObject);
+			
+			ArgumentCaptor<ReadAuditLog> logCaptor = ArgumentCaptor.forClass(ReadAuditLog.class);
+			verify(readAuditWorker).submitTask(logCaptor.capture());
+			
+			ReadAuditLog capturedLog = logCaptor.getValue();
+			assertEquals("anonymous", capturedLog.getUsername());
+			assertEquals("anonymous", capturedLog.getUserUUID());
+			
 			verify(appCacheManager).set(key, true);
 		}
 		finally {

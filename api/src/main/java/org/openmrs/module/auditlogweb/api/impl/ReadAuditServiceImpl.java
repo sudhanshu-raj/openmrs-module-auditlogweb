@@ -165,7 +165,14 @@ public class ReadAuditServiceImpl extends BaseOpenmrsService implements ReadAudi
 			}
 			
 			if (userUUID == null) {
-				return;
+				if (isReadSuccess) {
+					return;
+				}
+				// Get/fetch AOP method got hit by un-authenticated context and will probably have thrown some error
+				// which will get tracked by isReadSuccess so we can make this request as failed request by anonymous user
+				// as userUUID can't be null.
+				userUUID = "anonymous";
+				username = "anonymous";
 			}
 			
 			List<ReadAuditEntityMetadata> newTargetEntities = new ArrayList<>();
