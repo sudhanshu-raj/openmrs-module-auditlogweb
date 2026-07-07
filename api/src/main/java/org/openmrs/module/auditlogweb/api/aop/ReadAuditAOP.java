@@ -50,30 +50,6 @@ public class ReadAuditAOP {
 		return readAuditHelper.auditReadRequest(joinPoint);
 	}
 	
-	@Around("(execution(* org.openmrs.api.ConceptService.getConcept*(..)) || "
-	        + "execution(* org.openmrs.api.ConceptService.getDrug*(..)) || "
-	        + "execution(* org.openmrs.api.ConceptService.getAllConcept*(..)) || "
-	        + "execution(* org.openmrs.api.ConceptService.getSetsContainingConcept(..)) || "
-	        + "execution(* org.openmrs.api.ConceptService.getProposedConcepts(..)) || "
-	        + "execution(* org.openmrs.api.ConceptService.getPrevConcept(..)) || "
-	        + "execution(* org.openmrs.api.ConceptService.getNextConcept(..)) || "
-	        + "execution(* org.openmrs.api.ConceptService.getTrueConcept(..)) || "
-	        + "execution(* org.openmrs.api.ConceptService.getFalseConcept(..)) || "
-	        + "execution(* org.openmrs.api.ConceptService.getUnknownConcept(..)) || "
-	        + "execution(* org.openmrs.api.ConceptService.findConceptAnswers(..)) || "
-	        + "execution(* org.openmrs.api.ConceptService.getActiveConceptMapTypes(..)) || "
-	        + "execution(* org.openmrs.api.ConceptService.getReferenceTermMappingsTo(..)) || "
-	        + "execution(* org.openmrs.api.ConceptService.getDefaultConceptMapType(..)) || "
-	        + "execution(* org.openmrs.api.ConceptService.getOrderableConcepts(..)) || "
-	        + "execution(* org.openmrs.api.ConceptService.getAllConceptAttributeType*(..)) || "
-	        + "execution(* org.openmrs.api.ConceptService.getConceptAttributeType*(..)) || "
-	        + "execution(* org.openmrs.api.ConceptService.getAllDrugs(..))) && "
-	        + "!execution(* org.openmrs.api.ConceptService.getConceptStopWords(..)) && "
-	        + "!execution(* org.openmrs.api.ConceptService.getConceptIdsByMapping(..))")
-	public Object auditConceptDataRead(ProceedingJoinPoint joinPoint) throws Throwable {
-		return readAuditHelper.auditReadRequest(joinPoint);
-	}
-	
 	@Around("execution(* org.openmrs.api.ConditionService.getCondition*(..)) || "
 	        + "execution(* org.openmrs.api.ConditionService.getActiveConditions(..)) || "
 	        + "execution(* org.openmrs.api.ConditionService.getAllConditions(..)) ")
@@ -88,31 +64,6 @@ public class ReadAuditAOP {
 	        + "execution(* org.openmrs.api.DiagnosisService.getDiagnosisAttribute*(..)) || "
 	        + "execution(* org.openmrs.api.DiagnosisService.getUniqueDiagnoses(..)) ")
 	public Object auditDiagnosisDataRead(ProceedingJoinPoint joinPoint) throws Throwable {
-		return readAuditHelper.auditReadRequest(joinPoint);
-	}
-	
-	@Around("(execution(* org.openmrs.api.FormService.getForm*(..)) || "
-	        + "execution(* org.openmrs.api.FormService.getAllForms*(..)) || "
-	        + "execution(* org.openmrs.api.FormService.getFieldType*(..)) || "
-	        + "execution(* org.openmrs.api.FormService.getAllFieldTypes*(..)) || "
-	        + "execution(* org.openmrs.api.FormService.getFormsContainingConcept(..)) || "
-	        + "execution(* org.openmrs.api.FormService.getAllFormFields(..)) || "
-	        + "execution(* org.openmrs.api.FormService.getField*(..)) || "
-	        + "execution(* org.openmrs.api.FormService.getAllFields*(..)) || "
-	        + "execution(* org.openmrs.api.FormService.getPublishedForms(..))) && "
-	        + "!execution(* org.openmrs.api.FormService.getFormCount(..))")
-	public Object auditFormDataRead(ProceedingJoinPoint joinPoint) throws Throwable {
-		return readAuditHelper.auditReadRequest(joinPoint);
-	}
-	
-	@Around("execution(* org.openmrs.api.LocationService.getLocation*(..)) || "
-	        + "execution(* org.openmrs.api.LocationService.getDefaultLocation(..)) || "
-	        + "execution(* org.openmrs.api.LocationService.getAllLocations*(..)) || "
-	        + "execution(* org.openmrs.api.LocationService.getRootLocations(..)) || "
-	        + "execution(* org.openmrs.api.LocationService.getAllLocationAttributeTypes*(..)) || "
-	        + "execution(* org.openmrs.api.LocationService.getLocationAttributeType*(..)) || "
-	        + "execution(* org.openmrs.api.LocationService.getLocationAttribute*(..))")
-	public Object auditLocationDataRead(ProceedingJoinPoint joinPoint) throws Throwable {
 		return readAuditHelper.auditReadRequest(joinPoint);
 	}
 	
@@ -160,21 +111,6 @@ public class ReadAuditAOP {
 	        + "execution(* org.openmrs.api.ProgramWorkflowService.getAllConceptStateConversions(..)) || "
 	        + "execution(* org.openmrs.api.ProgramWorkflowService.getState*(..)) ")
 	public Object auditProgramDataRead(ProceedingJoinPoint joinPoint) throws Throwable {
-		return readAuditHelper.auditReadRequest(joinPoint);
-	}
-	
-	@Around("execution(* org.openmrs.api.ProviderService.getAllProviders(..)) || "
-	        + "execution(* org.openmrs.api.ProviderService.getProvider*(..)) || "
-	        + "execution(* org.openmrs.api.ProviderService.getAllProviderAttributeTypes*(..)) || "
-	        + "execution(* org.openmrs.api.ProviderService.getProviderAttribute*(..)) || "
-	        + "execution(* org.openmrs.api.ProviderService.getUnknownProvider(..)) ")
-	public Object auditProviderDataRead(ProceedingJoinPoint joinPoint) throws Throwable {
-		return readAuditHelper.auditReadRequest(joinPoint);
-	}
-	
-	@Around("execution(* org.openmrs.api.UserService.getUser*(..)) || "
-	        + "execution(* org.openmrs.api.UserService.getAllUsers(..))")
-	public Object auditUserDataRead(ProceedingJoinPoint joinPoint) throws Throwable {
 		return readAuditHelper.auditReadRequest(joinPoint);
 	}
 	
