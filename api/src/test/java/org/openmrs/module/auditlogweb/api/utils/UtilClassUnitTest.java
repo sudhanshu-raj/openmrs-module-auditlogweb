@@ -11,11 +11,18 @@ package org.openmrs.module.auditlogweb.api.utils;
 
 import org.hibernate.envers.Audited;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.openmrs.Concept;
+import org.openmrs.EncounterType;
+import org.openmrs.api.ConceptService;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.auditlogweb.api.dto.AuditFieldDiff;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.Date;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -23,6 +30,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class UtilClassUnitTest {
 	
@@ -157,6 +169,80 @@ public class UtilClassUnitTest {
 			}
 		}
 		assertTrue(foundChildField);
+	}
+	
+	@Test
+	public void serializeFieldValue_shouldRenderSqlDateAsLocalDateOnly() {
+		assertEquals("2000-01-15", UtilClass.serializeFieldValue(java.sql.Date.valueOf("2000-01-15")));
+	}
+	
+	@Test
+	public void serializeFieldValue_shouldRenderUtilDateInSystemZone() {
+		java.util.TimeZone original = java.util.TimeZone.getDefault();
+		try {
+			java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("UTC"));
+			assertEquals("1970-01-01T00:00:00Z", UtilClass.serializeFieldValue(new Date(0L)));
+			
+			// Non-UTC: a date-only value at local midnight must keep its local calendar day, not shift a day.
+			java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("Asia/Kolkata"));
+			java.util.Calendar cal = java.util.Calendar.getInstance();
+			cal.clear();
+			cal.set(2000, java.util.Calendar.JANUARY, 15, 0, 0, 0);
+			assertEquals("2000-01-15T00:00:00+05:30", UtilClass.serializeFieldValue(new Date(cal.getTimeInMillis())));
+		}
+		finally {
+			java.util.TimeZone.setDefault(original);
+		}
+	}
+	
+	@Test
+	public void resolveDisplayValue_shouldReturnNullForNonEntityValues() {
+		assertNull(UtilClass.resolveDisplayValue("just a string"));
+		assertNull(UtilClass.resolveDisplayValue(42));
+		assertNull(UtilClass.resolveDisplayValue(null));
+	}
+	
+	@Test
+	public void resolveDisplayValue_shouldResolveConceptDisplayLiveById() {
+		Concept reference = new Concept();
+		reference.setConceptId(88);
+		
+		Concept live = mock(Concept.class);
+		when(live.getDisplayString()).thenReturn("Malaria");
+		ConceptService conceptService = mock(ConceptService.class);
+		when(conceptService.getConcept(88)).thenReturn(live);
+		
+		try (MockedStatic<Context> context = mockStatic(Context.class)) {
+			context.when(Context::getConceptService).thenReturn(conceptService);
+			assertEquals("Malaria (Concept#88)", UtilClass.resolveDisplayValue(reference));
+		}
+	}
+	
+	@Test
+	public void resolveDisplayValue_shouldResolveMetadataByName() {
+		EncounterType encounterType = new EncounterType();
+		encounterType.setEncounterTypeId(7);
+		encounterType.setName("Vitals");
+		assertEquals("Vitals (EncounterType#7)", UtilClass.resolveDisplayValue(encounterType));
+	}
+	
+	@Test
+	public void resolveDisplayValue_shouldMemoizeLiveLookupsWithinACache() {
+		Concept reference = new Concept();
+		reference.setConceptId(88);
+		
+		Concept live = mock(Concept.class);
+		when(live.getDisplayString()).thenReturn("Malaria");
+		ConceptService conceptService = mock(ConceptService.class);
+		when(conceptService.getConcept(88)).thenReturn(live);
+		Map<String, String> cache = new HashMap<>();
+		
+		try (MockedStatic<Context> context = mockStatic(Context.class)) {
+			context.when(Context::getConceptService).thenReturn(conceptService);
+			assertEquals("Malaria (Concept#88)", UtilClass.resolveDisplayValue(reference, cache));
+			assertEquals("Malaria (Concept#88)", UtilClass.resolveDisplayValue(reference, cache));
+			verify(conceptService, times(1)).getConcept(88);
+		}
 	}
 	
 	// Dummy Audited class for testing only

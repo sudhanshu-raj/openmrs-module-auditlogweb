@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Date;
 import java.util.ArrayList;
@@ -288,12 +289,13 @@ public class AuditServiceImpl extends BaseOpenmrsService implements AuditService
 	@Override
 	public List<AuditLogDetailDTO> mapAuditEntitiesToDetails(List<AuditEntity<?>> auditEntities) {
 		List<AuditLogDetailDTO> dtoList = new ArrayList<>();
+		Map<String, String> displayCache = new HashMap<>();
 		
 		for (AuditEntity<?> entity : auditEntities) {
 			Object currentEntity = entity.getEntity();
 			Object oldEntity = fetchPreviousRevision(entity, currentEntity);
 			
-			List<AuditFieldDiff> changedFields = extractChangedFields(currentEntity, oldEntity);
+			List<AuditFieldDiff> changedFields = extractChangedFields(currentEntity, oldEntity, displayCache);
 			
 			AuditLogDetailDTO dto = buildAuditLogDetailDTO(entity, currentEntity, changedFields);
 			dtoList.add(dto);
@@ -417,8 +419,10 @@ public class AuditServiceImpl extends BaseOpenmrsService implements AuditService
 		}
 	}
 	
-	private List<AuditFieldDiff> extractChangedFields(Object currentEntity, Object oldEntity) {
-		List<AuditFieldDiff> diffs = UtilClass.computeFieldDiffs(currentEntity.getClass(), oldEntity, currentEntity);
+	private List<AuditFieldDiff> extractChangedFields(Object currentEntity, Object oldEntity,
+	        Map<String, String> displayCache) {
+		List<AuditFieldDiff> diffs = UtilClass.computeFieldDiffs(currentEntity.getClass(), oldEntity, currentEntity,
+		    displayCache);
 		
 		return diffs.stream().filter(AuditFieldDiff::isChanged).map(previousDiff -> {
 			AuditFieldDiff updatedDiff = new AuditFieldDiff();
@@ -426,6 +430,8 @@ public class AuditServiceImpl extends BaseOpenmrsService implements AuditService
 			updatedDiff.setOldValue(previousDiff.getOldValue());
 			updatedDiff.setCurrentValue(previousDiff.getCurrentValue());
 			updatedDiff.setChanged(true);
+			updatedDiff.setOldDisplay(previousDiff.getOldDisplay());
+			updatedDiff.setCurrentDisplay(previousDiff.getCurrentDisplay());
 			return updatedDiff;
 		}).collect(Collectors.toList());
 	}
@@ -469,12 +475,13 @@ public class AuditServiceImpl extends BaseOpenmrsService implements AuditService
 	
 	public List<AuditLogDetailDTO> getEntityDetailedAudit(List<AuditEntity<?>> auditEntities, Class<?> entityClass) {
 		List<AuditLogDetailDTO> entityAudList = new ArrayList<>();
+		Map<String, String> displayCache = new HashMap<>();
 		
 		for (AuditEntity<?> entity : auditEntities) {
 			Object currentEntity = entity.getEntity();
 			Object oldEntity = fetchPreviousRevision(entity, currentEntity);
 			
-			List<AuditFieldDiff> changedFields = extractChangedFields(currentEntity, oldEntity);
+			List<AuditFieldDiff> changedFields = extractChangedFields(currentEntity, oldEntity, displayCache);
 			
 			String entityId = UtilClass.getEntityIdAsString(currentEntity);
 			

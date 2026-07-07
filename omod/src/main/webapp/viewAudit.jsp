@@ -97,8 +97,8 @@
         <c:forEach var="diff" items="${diffs}" varStatus="status">
             <tr class="audit-row ${status.index % 2 == 0 ? 'evenRow' : 'oddRow'} ${diff.changed ? 'highlight' : ''}">
                 <td><c:out value="${diff.fieldName}" /></td>
-                <td><c:out value="${diff.oldValue}" /></td>
-                <td><c:out value="${diff.currentValue}" /></td>
+                <td><c:out value="${not empty diff.oldDisplay ? diff.oldDisplay : diff.oldValue}" /></td>
+                <td><c:out value="${not empty diff.currentDisplay ? diff.currentDisplay : diff.currentValue}" /></td>
             </tr>
         </c:forEach>
 

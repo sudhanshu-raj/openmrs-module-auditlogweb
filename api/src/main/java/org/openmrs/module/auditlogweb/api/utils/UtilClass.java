@@ -13,6 +13,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.envers.Audited;
 import org.hibernate.proxy.HibernateProxy;
 import org.openmrs.BaseOpenmrsObject;
+import org.openmrs.Concept;
+import org.openmrs.OpenmrsMetadata;
+import org.openmrs.Person;
+import org.openmrs.User;
+import org.openmrs.api.context.Context;
 import org.openmrs.util.OpenmrsClassLoader;
 import org.openmrs.module.auditlogweb.api.dto.AuditFieldDiff;
 import org.reflections.Reflections;
@@ -28,8 +33,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -53,6 +60,8 @@ import java.util.Map;
 public class UtilClass {
 	
 	private static final Logger log = LoggerFactory.getLogger(UtilClass.class);
+	
+	private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
 	
 	private static List<String> classesWithAuditAnnotation;
 	
@@ -175,6 +184,11 @@ public class UtilClass {
 	 * @return a list of {@link AuditFieldDiff} showing name, old value, new value, and change flag
 	 */
 	public static List<AuditFieldDiff> computeFieldDiffs(Class<?> clazz, Object oldEntity, Object currentEntity) {
+		return computeFieldDiffs(clazz, oldEntity, currentEntity, null);
+	}
+	
+	public static List<AuditFieldDiff> computeFieldDiffs(Class<?> clazz, Object oldEntity, Object currentEntity,
+	        Map<String, String> displayCache) {
 		List<AuditFieldDiff> diffs = new ArrayList<>();
 		if (currentEntity == null) {
 			return diffs;
@@ -192,9 +206,11 @@ public class UtilClass {
 			String currVal;
 			boolean failedOld = false;
 			boolean failedCurr = false;
+			Object currFieldValue = null;
+			Object oldFieldValue = null;
 			
 			try {
-				Object currFieldValue = field.get(currentEntity);
+				currFieldValue = field.get(currentEntity);
 				currVal = serializeFieldValue(currFieldValue);
 			}
 			catch (Exception e) {
@@ -204,7 +220,7 @@ public class UtilClass {
 			}
 			
 			try {
-				Object oldFieldValue = oldEntity != null ? field.get(oldEntity) : null;
+				oldFieldValue = oldEntity != null ? field.get(oldEntity) : null;
 				oldVal = serializeFieldValue(oldFieldValue);
 			}
 			catch (Exception e) {
@@ -219,7 +235,16 @@ public class UtilClass {
 			}
 			
 			boolean isDifferent = !Objects.equals(oldVal, currVal);
-			diffs.add(new AuditFieldDiff(field.getName(), oldVal, currVal, isDifferent));
+			AuditFieldDiff diff = new AuditFieldDiff();
+			diff.setFieldName(field.getName());
+			diff.setOldValue(oldVal);
+			diff.setCurrentValue(currVal);
+			diff.setChanged(isDifferent);
+			if (isDifferent) {
+				diff.setOldDisplay(resolveDisplayValue(oldFieldValue, displayCache));
+				diff.setCurrentDisplay(resolveDisplayValue(currFieldValue, displayCache));
+			}
+			diffs.add(diff);
 		}
 		return diffs;
 	}
@@ -348,6 +373,14 @@ public class UtilClass {
 			return "";
 		}
 		
+		if (value instanceof java.sql.Date) {
+			return ((java.sql.Date) value).toLocalDate().toString();
+		}
+		if (value instanceof Date) {
+			return OffsetDateTime.ofInstant(Instant.ofEpochMilli(((Date) value).getTime()), ZoneId.systemDefault())
+			        .format(DATE_TIME_FORMATTER);
+		}
+		
 		String actualClassName = getActualClassName(value);
 		if (isPrimitiveOrWrapper(value.getClass())) {
 			return String.valueOf(value);
@@ -450,6 +483,62 @@ public class UtilClass {
 		}
 		
 		return "";
+	}
+	
+	/**
+	 * Resolves an entity reference to a human-readable label of the form "Name (Type#id)". For
+	 * OpenmrsMetadata (including Location) the name is read from the audited snapshot, so it reflects
+	 * the name as of that revision; for Concept/User/Person the name is looked up live by id (memoized
+	 * per request). The retained Type#id token always identifies the exact referenced entity.
+	 */
+	public static String resolveDisplayValue(Object value) {
+		return resolveDisplayValue(value, null);
+	}
+	
+	public static String resolveDisplayValue(Object value, Map<String, String> displayCache) {
+		if (!(value instanceof BaseOpenmrsObject)) {
+			return null;
+		}
+		Integer id = getIdFromObject(value);
+		if (id == null) {
+			return null;
+		}
+		String token = getActualClassName(value) + "#" + id;
+		try {
+			// Metadata carries its name in memory (no query) and can vary per revision, so it is not cached.
+			if (value instanceof OpenmrsMetadata) {
+				String name = ((OpenmrsMetadata) value).getName();
+				return StringUtils.isBlank(name) ? null : name + " (" + token + ")";
+			}
+			// Concept/User/Location/Person need a live lookup; memoize by token to collapse repeats per request.
+			if (displayCache != null && displayCache.containsKey(token)) {
+				return displayCache.get(token);
+			}
+			String name = resolveLiveName(value, id);
+			String label = StringUtils.isBlank(name) ? null : name + " (" + token + ")";
+			if (displayCache != null) {
+				displayCache.put(token, label);
+			}
+			return label;
+		}
+		catch (Exception e) {
+			log.debug("Display resolution failed for {}: {}", token, e.getMessage());
+			return null;
+		}
+	}
+	
+	private static String resolveLiveName(Object value, Integer id) {
+		if (value instanceof Concept) {
+			Concept concept = Context.getConceptService().getConcept(id);
+			return concept != null ? concept.getDisplayString() : null;
+		} else if (value instanceof User) {
+			User user = Context.getUserService().getUser(id);
+			return user != null ? user.getDisplayString() : null;
+		} else if (value instanceof Person) {
+			Person person = Context.getPersonService().getPerson(id);
+			return (person != null && person.getPersonName() != null) ? person.getPersonName().getFullName() : null;
+		}
+		return null;
 	}
 	
 	public static Map<String, Class<?>> getFieldTypes(Class<?> clazz) {
