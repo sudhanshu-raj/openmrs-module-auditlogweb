@@ -10,7 +10,7 @@
 package org.openmrs.module.auditlogweb;
 
 import org.openmrs.api.context.Context;
-import org.openmrs.module.auditlogweb.api.ReadAuditService;
+import org.openmrs.module.auditlogweb.api.ReadAuditWriteService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +34,7 @@ public class ReadAuditWorker {
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 	
 	@Autowired
-	private ReadAuditService readAuditService;
+	private ReadAuditWriteService readAuditService;
 	
 	private final BlockingQueue<ReadAuditLog> queue = new LinkedBlockingQueue<>(10000);
 	

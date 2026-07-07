@@ -21,7 +21,7 @@ import org.openmrs.module.auditlogweb.ReadAuditEntityMetadata;
 import org.openmrs.module.auditlogweb.ReadAuditLog;
 import org.openmrs.module.auditlogweb.ReadAuditWorker;
 import org.openmrs.module.auditlogweb.api.AuditLogContext;
-import org.openmrs.module.auditlogweb.api.ReadAuditService;
+import org.openmrs.module.auditlogweb.api.ReadAuditWriteService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
@@ -45,7 +45,7 @@ class ReadAuditHelper {
 	
 	private final AppCacheManager appCacheManager;
 	
-	private final ReadAuditService readAuditService;
+	private final ReadAuditWriteService readAuditService;
 	
 	@Autowired
 	@Lazy

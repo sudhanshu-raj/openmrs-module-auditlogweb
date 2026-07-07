@@ -16,7 +16,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.auditlogweb.api.ReadAuditService;
+import org.openmrs.module.auditlogweb.api.ReadAuditWriteService;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -42,7 +42,7 @@ import static org.mockito.Mockito.verify;
 class ReadAuditWorkerTest {
 	
 	@Mock
-	private ReadAuditService readAuditService;
+	private ReadAuditWriteService readAuditService;
 	
 	@InjectMocks
 	private ReadAuditWorker worker;

@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.auditlogweb.ReadAuditLog;
 import org.openmrs.module.auditlogweb.api.ReadAuditService;
+import org.openmrs.module.auditlogweb.api.ReadAuditWriteService;
 import org.openmrs.module.auditlogweb.api.dao.ReadAuditDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,7 @@ import java.util.Date;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class ReadAuditServiceImpl extends BaseOpenmrsService implements ReadAuditService {
+public class ReadAuditServiceImpl extends BaseOpenmrsService implements ReadAuditService, ReadAuditWriteService {
 	
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 	

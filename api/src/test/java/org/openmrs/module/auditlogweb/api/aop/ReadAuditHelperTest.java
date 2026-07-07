@@ -22,7 +22,7 @@ import org.openmrs.module.auditlogweb.AppCacheManager;
 import org.openmrs.module.auditlogweb.ReadAuditLog;
 import org.openmrs.module.auditlogweb.ReadAuditWorker;
 import org.openmrs.module.auditlogweb.api.AuditLogContext;
-import org.openmrs.module.auditlogweb.api.ReadAuditService;
+import org.openmrs.module.auditlogweb.api.ReadAuditWriteService;
 
 import java.lang.reflect.Method;
 
@@ -50,7 +50,7 @@ class ReadAuditHelperTest {
 	private ReadAuditWorker readAuditWorker;
 	
 	@Mock
-	private ReadAuditService readAuditService;
+	private ReadAuditWriteService readAuditService;
 	
 	@InjectMocks
 	private ReadAuditHelper readAuditHelper;
@@ -261,8 +261,6 @@ class ReadAuditHelperTest {
 		buildAuditContext();
 		
 		try (MockedStatic<Context> contextMock = mockStatic(Context.class)) {
-			contextMock.when(() -> Context.getService(ReadAuditService.class)).thenReturn(readAuditService);
-			
 			OpenmrsObject mockObject = mock(OpenmrsObject.class);
 			when(mockObject.getId()).thenReturn(1);
 			when(mockObject.getUuid()).thenReturn("test-uuid");
