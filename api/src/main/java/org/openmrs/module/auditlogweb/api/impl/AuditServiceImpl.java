@@ -19,6 +19,7 @@ import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.auditlogweb.AuditEntity;
 import org.openmrs.module.auditlogweb.AuditSecurityEvent;
 import org.openmrs.module.auditlogweb.api.utils.AuditSecurityEventType;
+import org.openmrs.module.auditlogweb.api.AuditBackfillService;
 import org.openmrs.module.auditlogweb.api.AuditService;
 import org.openmrs.module.auditlogweb.api.dao.AuditDao;
 import org.openmrs.module.auditlogweb.api.dto.AuditEntityTypesResponseDto;
@@ -31,6 +32,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Date;
 import java.util.ArrayList;
@@ -53,6 +56,8 @@ public class AuditServiceImpl extends BaseOpenmrsService implements AuditService
 	
 	private final AuditDao auditDao;
 	
+	private final AuditBackfillService auditBackfillService;
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -67,7 +72,7 @@ public class AuditServiceImpl extends BaseOpenmrsService implements AuditService
 	@Override
 	public <T> List<AuditEntity<T>> getAllRevisions(String entityClassName, int page, int size, String sortOrder) {
 		try {
-			Class<T> clazz = (Class<T>) Class.forName(entityClassName);
+			Class<T> clazz = (Class<T>) UtilClass.loadClass(entityClassName);
 			return getAllRevisions(clazz, page, size, sortOrder);
 		}
 		catch (ClassNotFoundException e) {
@@ -137,7 +142,7 @@ public class AuditServiceImpl extends BaseOpenmrsService implements AuditService
 	 */
 	public long countAllRevisions(String entityClassName) {
 		try {
-			Class<?> clazz = Class.forName(entityClassName);
+			Class<?> clazz = UtilClass.loadClass(entityClassName);
 			return countAllRevisions(clazz);
 		}
 		catch (ClassNotFoundException e) {
@@ -284,12 +289,13 @@ public class AuditServiceImpl extends BaseOpenmrsService implements AuditService
 	@Override
 	public List<AuditLogDetailDTO> mapAuditEntitiesToDetails(List<AuditEntity<?>> auditEntities) {
 		List<AuditLogDetailDTO> dtoList = new ArrayList<>();
+		Map<String, String> displayCache = new HashMap<>();
 		
 		for (AuditEntity<?> entity : auditEntities) {
 			Object currentEntity = entity.getEntity();
 			Object oldEntity = fetchPreviousRevision(entity, currentEntity);
 			
-			List<AuditFieldDiff> changedFields = extractChangedFields(currentEntity, oldEntity);
+			List<AuditFieldDiff> changedFields = extractChangedFields(currentEntity, oldEntity, displayCache);
 			
 			AuditLogDetailDTO dto = buildAuditLogDetailDTO(entity, currentEntity, changedFields);
 			dtoList.add(dto);
@@ -307,7 +313,7 @@ public class AuditServiceImpl extends BaseOpenmrsService implements AuditService
 		if (entityType != null && !entityType.trim().isEmpty()) {
 			boolean isValid = UtilClass.findClassesWithAnnotation().stream().map(className -> {
 				try {
-					return Class.forName(className);
+					return UtilClass.loadClass(className);
 				}
 				catch (ClassNotFoundException e) {
 					return null;
@@ -350,6 +356,13 @@ public class AuditServiceImpl extends BaseOpenmrsService implements AuditService
 	
 	@Override
 	public List<AuditEntity<?>> getRelatedEntitiesInRevision(Class<?> entityClass, Object entityId, int revisionId) {
+		// The one-time backfill assigns every pre-existing row to a single "baseline" revision.
+		// That revision is a bulk import, not a real transaction, so treating it as "these entities changed
+		// together" would list the entire audited dataset. Skip it for this feature.
+		if (auditBackfillService.isBaselineRevision(revisionId)) {
+			return Collections.emptyList();
+		}
+		
 		Map<String, Class<?>> fieldTypes = UtilClass.getFieldTypes(entityClass);
 		Set<Class<?>> relevantClasses = new HashSet<>(fieldTypes.values());
 		relevantClasses.remove(null);
@@ -392,7 +405,7 @@ public class AuditServiceImpl extends BaseOpenmrsService implements AuditService
 				entityId = Integer.parseInt(entityId.toString());
 			}
 			catch (NumberFormatException e) {
-				//If this exception occurred then it may be the uuid, which we're trying to convert to int, so leave it as string
+				log.debug("Entity id [{}] is not numeric; treating it as a non-integer identifier.", entityId);
 			}
 		}
 		
@@ -406,8 +419,10 @@ public class AuditServiceImpl extends BaseOpenmrsService implements AuditService
 		}
 	}
 	
-	private List<AuditFieldDiff> extractChangedFields(Object currentEntity, Object oldEntity) {
-		List<AuditFieldDiff> diffs = UtilClass.computeFieldDiffs(currentEntity.getClass(), oldEntity, currentEntity);
+	private List<AuditFieldDiff> extractChangedFields(Object currentEntity, Object oldEntity,
+	        Map<String, String> displayCache) {
+		List<AuditFieldDiff> diffs = UtilClass.computeFieldDiffs(currentEntity.getClass(), oldEntity, currentEntity,
+		    displayCache);
 		
 		return diffs.stream().filter(AuditFieldDiff::isChanged).map(previousDiff -> {
 			AuditFieldDiff updatedDiff = new AuditFieldDiff();
@@ -415,6 +430,8 @@ public class AuditServiceImpl extends BaseOpenmrsService implements AuditService
 			updatedDiff.setOldValue(previousDiff.getOldValue());
 			updatedDiff.setCurrentValue(previousDiff.getCurrentValue());
 			updatedDiff.setChanged(true);
+			updatedDiff.setOldDisplay(previousDiff.getOldDisplay());
+			updatedDiff.setCurrentDisplay(previousDiff.getCurrentDisplay());
 			return updatedDiff;
 		}).collect(Collectors.toList());
 	}
@@ -458,12 +475,13 @@ public class AuditServiceImpl extends BaseOpenmrsService implements AuditService
 	
 	public List<AuditLogDetailDTO> getEntityDetailedAudit(List<AuditEntity<?>> auditEntities, Class<?> entityClass) {
 		List<AuditLogDetailDTO> entityAudList = new ArrayList<>();
+		Map<String, String> displayCache = new HashMap<>();
 		
 		for (AuditEntity<?> entity : auditEntities) {
 			Object currentEntity = entity.getEntity();
 			Object oldEntity = fetchPreviousRevision(entity, currentEntity);
 			
-			List<AuditFieldDiff> changedFields = extractChangedFields(currentEntity, oldEntity);
+			List<AuditFieldDiff> changedFields = extractChangedFields(currentEntity, oldEntity, displayCache);
 			
 			String entityId = UtilClass.getEntityIdAsString(currentEntity);
 			
