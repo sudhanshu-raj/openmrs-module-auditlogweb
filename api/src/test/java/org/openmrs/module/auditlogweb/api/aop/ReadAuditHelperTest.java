@@ -22,7 +22,7 @@ import org.openmrs.module.auditlogweb.AppCacheManager;
 import org.openmrs.module.auditlogweb.ReadAuditLog;
 import org.openmrs.module.auditlogweb.ReadAuditWorker;
 import org.openmrs.module.auditlogweb.api.AuditLogContext;
-import org.openmrs.module.auditlogweb.api.ReadAuditWriteService;
+import org.openmrs.module.auditlogweb.api.AuditLogRecorder;
 
 import java.lang.reflect.Method;
 
@@ -50,7 +50,7 @@ class ReadAuditHelperTest {
 	private ReadAuditWorker readAuditWorker;
 	
 	@Mock
-	private ReadAuditWriteService readAuditService;
+	private AuditLogRecorder auditLogRecorder;
 	
 	@InjectMocks
 	private ReadAuditHelper readAuditHelper;
@@ -60,7 +60,7 @@ class ReadAuditHelperTest {
 		MockitoAnnotations.openMocks(this);
 		org.springframework.test.util.ReflectionTestUtils.setField(readAuditHelper, "appCacheManager", appCacheManager);
 		org.springframework.test.util.ReflectionTestUtils.setField(readAuditHelper, "readAuditWorker", readAuditWorker);
-		org.springframework.test.util.ReflectionTestUtils.setField(readAuditHelper, "readAuditService", readAuditService);
+		org.springframework.test.util.ReflectionTestUtils.setField(readAuditHelper, "auditLogRecorder", auditLogRecorder);
 		when(appCacheManager.get(any())).thenReturn(null);
 		when(readAuditWorker.submitTask(any(ReadAuditLog.class))).thenReturn(true);
 	}
@@ -244,7 +244,7 @@ class ReadAuditHelperTest {
 			String key = "test-user:127.0.0.1:test-uuid";
 			when(appCacheManager.get(key)).thenReturn(null);
 			when(readAuditWorker.submitTask(any(ReadAuditLog.class))).thenReturn(false);
-			doThrow(new RuntimeException("Sync save failed")).when(readAuditService).logReadAudit(any(ReadAuditLog.class));
+			doThrow(new RuntimeException("Sync save failed")).when(auditLogRecorder).logReadAudit(any(ReadAuditLog.class));
 			
 			readAuditHelper.saveReadAuditRequest("Patient", true, mockObject);
 			
@@ -272,7 +272,7 @@ class ReadAuditHelperTest {
 			readAuditHelper.saveReadAuditRequest("Patient", true, mockObject);
 			
 			verify(readAuditWorker).submitTask(any(ReadAuditLog.class));
-			verify(readAuditService).logReadAudit(any(ReadAuditLog.class));
+			verify(auditLogRecorder).logReadAudit(any(ReadAuditLog.class));
 			verify(appCacheManager).set(key, true);
 		}
 		finally {

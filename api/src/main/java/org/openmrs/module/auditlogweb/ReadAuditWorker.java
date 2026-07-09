@@ -10,7 +10,7 @@
 package org.openmrs.module.auditlogweb;
 
 import org.openmrs.api.context.Context;
-import org.openmrs.module.auditlogweb.api.ReadAuditWriteService;
+import org.openmrs.module.auditlogweb.api.AuditLogRecorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +34,7 @@ public class ReadAuditWorker {
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 	
 	@Autowired
-	private ReadAuditWriteService readAuditService;
+	private AuditLogRecorder auditLogRecorder;
 	
 	private final BlockingQueue<ReadAuditLog> queue = new LinkedBlockingQueue<>(10000);
 	
@@ -97,7 +97,7 @@ public class ReadAuditWorker {
 		boolean isBatchLogsSaved = false;
 		try {
 			Context.openSession();
-			readAuditService.logReadAudits(batch);
+			auditLogRecorder.logReadAudits(batch);
 			isBatchLogsSaved = true;
 		}
 		catch (Exception e) {
@@ -111,7 +111,7 @@ public class ReadAuditWorker {
 			for (ReadAuditLog logEntry : batch) {
 				try {
 					Context.openSession();
-					readAuditService.logReadAudit(logEntry);
+					auditLogRecorder.logReadAudit(logEntry);
 				}
 				catch (Exception ex) {
 					log.error("Failed to save individual read audit log in fallback", ex);

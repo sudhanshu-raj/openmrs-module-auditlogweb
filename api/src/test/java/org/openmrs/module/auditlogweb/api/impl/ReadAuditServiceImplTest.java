@@ -44,30 +44,6 @@ class ReadAuditServiceImplTest {
 	}
 	
 	@Test
-	void shouldDelegateSaveReadAuditLog() {
-		ReadAuditLog mockLog = mock(ReadAuditLog.class);
-		readAuditService.logReadAudit(mockLog);
-		verify(readAuditDAO).saveReadAuditLog(mockLog);
-	}
-	
-	@Test
-	void shouldDelegateSaveReadAuditLogs() {
-		ReadAuditLog mockLog1 = mock(ReadAuditLog.class);
-		ReadAuditLog mockLog2 = mock(ReadAuditLog.class);
-		List<ReadAuditLog> logs = Arrays.asList(mockLog1, mockLog2);
-		
-		readAuditService.logReadAudits(logs);
-		
-		verify(readAuditDAO).saveReadAuditLog(mockLog1);
-		verify(readAuditDAO).saveReadAuditLog(mockLog2);
-	}
-	
-	@Test
-	void shouldDoNothingWhenLogReadAuditsIsNull() {
-		readAuditService.logReadAudits(null);
-	}
-	
-	@Test
 	void shouldDelegateGetReadAuditLogs() {
 		Date startDate = new Date();
 		Date endDate = new Date();

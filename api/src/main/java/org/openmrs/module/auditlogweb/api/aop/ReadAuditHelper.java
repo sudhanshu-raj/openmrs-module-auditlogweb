@@ -21,7 +21,7 @@ import org.openmrs.module.auditlogweb.ReadAuditEntityMetadata;
 import org.openmrs.module.auditlogweb.ReadAuditLog;
 import org.openmrs.module.auditlogweb.ReadAuditWorker;
 import org.openmrs.module.auditlogweb.api.AuditLogContext;
-import org.openmrs.module.auditlogweb.api.ReadAuditWriteService;
+import org.openmrs.module.auditlogweb.api.AuditLogRecorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
@@ -45,7 +45,7 @@ class ReadAuditHelper {
 	
 	private final AppCacheManager appCacheManager;
 	
-	private final ReadAuditWriteService readAuditService;
+	private final AuditLogRecorder auditLogRecorder;
 	
 	@Autowired
 	@Lazy
@@ -156,7 +156,7 @@ class ReadAuditHelper {
 				} else {
 					log.warn("Queue is full, need to save the log synchronously");
 					try {
-						readAuditService.logReadAudit(readAuditLog);
+						auditLogRecorder.logReadAudit(readAuditLog);
 						for (String key : cacheKeysToSet) {
 							appCacheManager.set(key, true);
 						}

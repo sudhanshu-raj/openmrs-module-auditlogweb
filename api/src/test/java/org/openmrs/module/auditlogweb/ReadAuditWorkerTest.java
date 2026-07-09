@@ -16,7 +16,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.auditlogweb.api.ReadAuditWriteService;
+import org.openmrs.module.auditlogweb.api.AuditLogRecorder;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -42,7 +42,7 @@ import static org.mockito.Mockito.verify;
 class ReadAuditWorkerTest {
 	
 	@Mock
-	private ReadAuditWriteService readAuditService;
+	private AuditLogRecorder auditLogRecorder;
 	
 	@InjectMocks
 	private ReadAuditWorker worker;
@@ -133,8 +133,8 @@ class ReadAuditWorkerTest {
 			context.verify(Context::openSession);
 			context.verify(Context::closeSession);
 			
-			verify(readAuditService).logReadAudits(batch);
-			verify(readAuditService, never()).logReadAudit(any(ReadAuditLog.class));
+			verify(auditLogRecorder).logReadAudits(batch);
+			verify(auditLogRecorder, never()).logReadAudit(any(ReadAuditLog.class));
 		}
 	}
 	
@@ -145,14 +145,14 @@ class ReadAuditWorkerTest {
 			ReadAuditLog logEntry2 = new ReadAuditLog();
 			List<ReadAuditLog> batch = Arrays.asList(logEntry1, logEntry2);
 			
-			doThrow(new RuntimeException("Batch failed")).when(readAuditService).logReadAudits(batch);
+			doThrow(new RuntimeException("Batch failed")).when(auditLogRecorder).logReadAudits(batch);
 			
 			Method saveBatchMethod = ReadAuditWorker.class.getDeclaredMethod("saveBatch", List.class);
 			saveBatchMethod.setAccessible(true);
 			saveBatchMethod.invoke(worker, batch);
 			
-			verify(readAuditService).logReadAudit(logEntry1);
-			verify(readAuditService).logReadAudit(logEntry2);
+			verify(auditLogRecorder).logReadAudit(logEntry1);
+			verify(auditLogRecorder).logReadAudit(logEntry2);
 			
 			context.verify(Context::openSession, times(3));
 			context.verify(Context::closeSession, times(3));
@@ -166,15 +166,15 @@ class ReadAuditWorkerTest {
 			ReadAuditLog logEntry2 = new ReadAuditLog();
 			List<ReadAuditLog> batch = Arrays.asList(logEntry1, logEntry2);
 			
-			doThrow(new RuntimeException("Batch failed")).when(readAuditService).logReadAudits(batch);
-			doThrow(new RuntimeException("Entry 1 failed")).when(readAuditService).logReadAudit(logEntry1);
+			doThrow(new RuntimeException("Batch failed")).when(auditLogRecorder).logReadAudits(batch);
+			doThrow(new RuntimeException("Entry 1 failed")).when(auditLogRecorder).logReadAudit(logEntry1);
 			
 			Method saveBatchMethod = ReadAuditWorker.class.getDeclaredMethod("saveBatch", List.class);
 			saveBatchMethod.setAccessible(true);
 			saveBatchMethod.invoke(worker, batch);
 			
-			verify(readAuditService).logReadAudit(logEntry1);
-			verify(readAuditService).logReadAudit(logEntry2);
+			verify(auditLogRecorder).logReadAudit(logEntry1);
+			verify(auditLogRecorder).logReadAudit(logEntry2);
 			
 			context.verify(Context::openSession, times(3));
 			context.verify(Context::closeSession, times(3));
@@ -192,13 +192,13 @@ class ReadAuditWorkerTest {
 				runningField.setAccessible(true);
 				runningField.set(worker, false);
 				return null;
-			}).when(readAuditService).logReadAudits(anyList());
+			}).when(auditLogRecorder).logReadAudits(anyList());
 			
 			Method runMethod = ReadAuditWorker.class.getDeclaredMethod("run");
 			runMethod.setAccessible(true);
 			runMethod.invoke(worker);
 			
-			verify(readAuditService).logReadAudits(Collections.singletonList(logEntry1));
+			verify(auditLogRecorder).logReadAudits(Collections.singletonList(logEntry1));
 			
 			context.verify(Context::openSession);
 			context.verify(Context::closeSession);
