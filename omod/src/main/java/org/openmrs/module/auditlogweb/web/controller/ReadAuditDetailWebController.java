@@ -83,7 +83,7 @@ public class ReadAuditDetailWebController {
 			return new ModelAndView(ACCESS_DENIED_VIEW, model);
 		}
 		catch (Exception e) {
-			log.error("Error loading security audit detail: ", e);
+			log.error("Error loading read audit detail: ", e);
 			model.addAttribute("errorMessage", "Error loading audit data: " + e.getMessage());
 			return new ModelAndView(VIEW, model);
 		}

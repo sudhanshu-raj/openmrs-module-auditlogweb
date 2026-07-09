@@ -126,7 +126,7 @@
             </c:when>
             <c:otherwise>
                 <tr>
-                    <td colspan="5">No security audit logs found for the given criteria.</td>
+                    <td colspan="5">No read audit logs found for the given criteria.</td>
                 </tr>
             </c:otherwise>
         </c:choose>
