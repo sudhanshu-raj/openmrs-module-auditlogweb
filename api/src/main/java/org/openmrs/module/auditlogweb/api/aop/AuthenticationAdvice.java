@@ -45,9 +45,15 @@ public class AuthenticationAdvice {
 	public Object authenticate(ProceedingJoinPoint joinPoint) throws Throwable {
 		
 		AuditLogContext ctx = AuditLogContext.get();
-		String sessionId = ctx != null ? ctx.getSessionId() : null;
-		String ipAddress = ctx != null ? ctx.getIpAddress() : null;
-		String userAgent = ctx != null ? ctx.getUserAgent() : null;
+		String sessionId = null;
+		String ipAddress = null;
+		String userAgent = null;
+		
+		if (ctx != null) {
+			sessionId = ctx.getSessionId();
+			ipAddress = ctx.getIpAddress();
+			userAgent = ctx.getUserAgent();
+		}
 		
 		try {
 			Object result = joinPoint.proceed();
@@ -78,7 +84,7 @@ public class AuthenticationAdvice {
 			
 			// Marks current pre-fixation session id so SessionTimeoutListener ignores it.
 			// The login flow invalidates that session later during fixation protection.
-			markSessionAsLoginFixation();
+			markSessionAsLoginFixation(sessionId);
 			
 			return result;
 		}
@@ -198,9 +204,7 @@ public class AuthenticationAdvice {
 		return "{\"failureReason\":\"" + reason + "\",\"accountLocked\":" + isAccountLocked + "}";
 	}
 	
-	private void markSessionAsLoginFixation() {
-		AuditLogContext ctx = AuditLogContext.get();
-		String sessionId = ctx != null ? ctx.getSessionId() : null;
+	private void markSessionAsLoginFixation(String sessionId) {
 		if (sessionId == null) {
 			return;
 		}
