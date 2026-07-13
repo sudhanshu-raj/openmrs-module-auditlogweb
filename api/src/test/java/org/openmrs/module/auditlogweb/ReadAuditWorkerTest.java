@@ -44,6 +44,9 @@ class ReadAuditWorkerTest {
 	@Mock
 	private AuditLogRecorder auditLogRecorder;
 	
+	@Mock
+	private AppCacheManager appCacheManager;
+	
 	@InjectMocks
 	private ReadAuditWorker worker;
 	
@@ -214,5 +217,35 @@ class ReadAuditWorkerTest {
 		runMethod.invoke(worker);
 		
 		assertTrue(Thread.interrupted());
+	}
+	
+	@Test
+	void shouldRemoveFromCacheIfFailsToPersist() throws Exception {
+		
+		ReadAuditEntityMetadata metadata = ReadAuditEntityMetadata.builder().entityUuid("test-uuid").build();
+		ReadAuditLog auditLog = ReadAuditLog.builder().username("test").userUUID("test-user-uuid").ipAddress("127.0.0.1")
+		        .build();
+		auditLog.setTargets(Collections.singletonList(metadata));
+		
+		List<ReadAuditLog> batch = Collections.singletonList(auditLog);
+		String expectedKey = "test:127.0.0.1:test-uuid";
+		
+		doThrow(new RuntimeException("Batch save failed")).when(auditLogRecorder).logReadAudits(batch);
+		doThrow(new RuntimeException("Individual save failed")).when(auditLogRecorder).logReadAudit(auditLog);
+		
+		try (MockedStatic<Context> context = mockStatic(Context.class)) {
+			
+			Method saveBatchMethod = ReadAuditWorker.class.getDeclaredMethod("saveBatch", List.class);
+			saveBatchMethod.setAccessible(true);
+			saveBatchMethod.invoke(worker, batch);
+			
+			verify(appCacheManager).invalidate(expectedKey);
+			
+			verify(auditLogRecorder).logReadAudits(batch);
+			verify(auditLogRecorder).logReadAudit(auditLog);
+			
+			context.verify(Context::openSession, times(2));
+			context.verify(Context::closeSession, times(2));
+		}
 	}
 }

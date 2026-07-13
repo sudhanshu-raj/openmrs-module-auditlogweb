@@ -31,4 +31,9 @@ public class AppCacheManager {
 	public Boolean get(String key) {
 		return cache.getIfPresent(key);
 	}
+	
+	public void invalidate(String key) {
+		cache.invalidate(key);
+	}
+	
 }

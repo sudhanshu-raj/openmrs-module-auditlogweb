@@ -36,6 +36,8 @@ public class ReadAuditWorker {
 	
 	private final AuditLogRecorder auditLogRecorder;
 	
+	private final AppCacheManager appCacheManager;
+	
 	private final BlockingQueue<ReadAuditLog> queue = new LinkedBlockingQueue<>(10000);
 	
 	private Thread workerThread;
@@ -115,11 +117,32 @@ public class ReadAuditWorker {
 				}
 				catch (Exception ex) {
 					log.error("Failed to save individual read audit log in fallback", ex);
+					removeCacheKeys(logEntry);
 				}
 				finally {
 					Context.closeSession();
 				}
 			}
+		}
+	}
+	
+	private void removeCacheKeys(ReadAuditLog readAuditLog) {
+		try {
+			String username = readAuditLog.getUsername();
+			String userUUID = readAuditLog.getUserUUID();
+			String userKey = username != null ? username : userUUID;
+			
+			String ipAddress = readAuditLog.getIpAddress();
+			String safeIp = ipAddress != null ? ipAddress : "unknown";
+			
+			for (ReadAuditEntityMetadata entityData : readAuditLog.getTargets()) {
+				String entityUUID = entityData.getEntityUuid();
+				String key = userKey + ":" + safeIp + ":" + entityUUID;
+				appCacheManager.invalidate(key);
+			}
+		}
+		catch (Exception e) {
+			log.error("Failed to remove read audit keys", e);
 		}
 	}
 }
