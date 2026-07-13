@@ -9,11 +9,11 @@
  */
 package org.openmrs.module.auditlogweb;
 
+import lombok.RequiredArgsConstructor;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.auditlogweb.api.AuditLogRecorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -29,12 +29,12 @@ import java.util.concurrent.LinkedBlockingQueue;
  * once or one by one.
  */
 @Component
+@RequiredArgsConstructor
 public class ReadAuditWorker {
 	
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 	
-	@Autowired
-	private AuditLogRecorder auditLogRecorder;
+	private final AuditLogRecorder auditLogRecorder;
 	
 	private final BlockingQueue<ReadAuditLog> queue = new LinkedBlockingQueue<>(10000);
 	

@@ -25,7 +25,6 @@ import org.openmrs.module.auditlogweb.api.AuditLogRecorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -47,9 +46,8 @@ class ReadAuditHelper {
 	
 	private final AuditLogRecorder auditLogRecorder;
 	
-	@Autowired
 	@Lazy
-	private ReadAuditWorker readAuditWorker;
+	private final ReadAuditWorker readAuditWorker;
 	
 	public Object auditReadRequest(ProceedingJoinPoint joinPoint) throws Throwable {
 		if (AopUtils.isAopProxy(joinPoint.getTarget())) {
@@ -133,7 +131,7 @@ class ReadAuditHelper {
 			List<ReadAuditEntityMetadata> targetEntities = getEntityMetadata(result);
 			for (ReadAuditEntityMetadata targetEntity : targetEntities) {
 				if (targetEntity.getEntityUuid() != null) {
-					String userKey = username != null ? username : (userUUID != null ? userUUID : "anonymous");
+					String userKey = username != null ? username : userUUID;
 					String safeIp = ipAddress != null ? ipAddress : "unknown";
 					String key = userKey + ":" + safeIp + ":" + targetEntity.getEntityUuid();
 					if (appCacheManager.get(key) == null) {
