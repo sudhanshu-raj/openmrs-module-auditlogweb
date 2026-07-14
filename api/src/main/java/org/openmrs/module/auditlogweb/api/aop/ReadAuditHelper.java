@@ -25,7 +25,6 @@ import org.openmrs.module.auditlogweb.api.AuditLogRecorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
@@ -46,7 +45,6 @@ class ReadAuditHelper {
 	
 	private final AuditLogRecorder auditLogRecorder;
 	
-	@Lazy
 	private final ReadAuditWorker readAuditWorker;
 	
 	public Object auditReadRequest(ProceedingJoinPoint joinPoint) throws Throwable {
