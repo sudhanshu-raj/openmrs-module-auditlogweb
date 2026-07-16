@@ -12,21 +12,7 @@
 <%@ include file="localHeader.jsp"%>
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600&display=swap">
-<link rel="stylesheet" type="text/css" href="<openmrs:contextPath/>/moduleResources/auditlogweb/css/viewAuditLogDetail.css" />
-
-<style>
-    .uuid-list {
-        margin: 0;
-        padding-left: 20px;
-        font-family: monospace;
-        font-size: 13px;
-        color: #161616;
-        line-height: 1.6;
-    }
-    .uuid-list li {
-        margin-bottom: 4px;
-    }
-</style>
+<link rel="stylesheet" type="text/css" href="<openmrs:contextPath/>/moduleResources/auditlogweb/css/viewReadAuditLog.css" />
 <div class="audit-detail-container">
 
     <div class="title-section">
@@ -129,7 +115,15 @@
         </div>
 
         <div class="info-section">
-            <h2 class="section-title">TARGET ENTITY UUIDS</h2>
+            <h2 class="section-title">
+                TARGET ENTITY UUIDS
+                <span class="tooltip-container">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="info-icon-svg"><circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    <span class="tooltip-text">UUID of the fetched entity like Patient UUID</span>
+                </span>
+            </h2>
             <div class="details-content">
                 <c:choose>
                     <c:when test="${not empty readAudit.targets}">
