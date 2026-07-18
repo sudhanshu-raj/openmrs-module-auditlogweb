@@ -11,13 +11,17 @@ package org.openmrs.module.auditlogweb.api.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.openmrs.api.impl.BaseOpenmrsService;
+import org.openmrs.module.auditlogweb.ReadAuditEntityMetadata;
 import org.openmrs.module.auditlogweb.ReadAuditLog;
 import org.openmrs.module.auditlogweb.api.ReadAuditService;
 import org.openmrs.module.auditlogweb.api.dao.ReadAuditDAO;
+import org.openmrs.module.auditlogweb.api.dto.ReadAuditEntityMetadataDTO;
+import org.openmrs.module.auditlogweb.api.dto.ReadAuditLogDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -59,5 +63,36 @@ public class ReadAuditServiceImpl extends BaseOpenmrsService implements ReadAudi
 	@Override
 	public List<String> getEntityTypes() {
 		return readAuditDAO.getEntityTypes();
+	}
+	
+	@Override
+	public List<ReadAuditLogDTO> mapToReadAuditLogDTO(List<ReadAuditLog> readAuditLogs) {
+		
+		List<ReadAuditLogDTO> readAuditLogDTOs = new ArrayList<>();
+		
+		for (ReadAuditLog currAudit : readAuditLogs) {
+			ReadAuditLogDTO readAuditLogDTO = ReadAuditLogDTO.builder().id(currAudit.getId())
+			        .entityName(currAudit.getEntityName())
+			        .entityMetadata(mapToReadAuditEntityMetadataDTO(currAudit.getTargets()))
+			        .isReadSuccess(currAudit.isReadSuccess()).username(currAudit.getUsername())
+			        .userUUID(currAudit.getUserUUID()).eventTime(currAudit.getEventTime())
+			        .ipAddress(currAudit.getIpAddress()).userAgent(currAudit.getUserAgent())
+			        .sessionId(currAudit.getSessionId()).build();
+			readAuditLogDTOs.add(readAuditLogDTO);
+		}
+		
+		return readAuditLogDTOs;
+	}
+	
+	private List<ReadAuditEntityMetadataDTO> mapToReadAuditEntityMetadataDTO(
+	        List<ReadAuditEntityMetadata> entityMetadataList) {
+		
+		List<ReadAuditEntityMetadataDTO> readAuditEntityMetadataDTOs = new ArrayList<>();
+		for (ReadAuditEntityMetadata currEntityMetadata : entityMetadataList) {
+			ReadAuditEntityMetadataDTO metadataDTO = ReadAuditEntityMetadataDTO.builder().id(currEntityMetadata.getId())
+			        .entityUUID(currEntityMetadata.getEntityUuid()).build();
+			readAuditEntityMetadataDTOs.add(metadataDTO);
+		}
+		return readAuditEntityMetadataDTOs;
 	}
 }

@@ -11,6 +11,7 @@ package org.openmrs.module.auditlogweb.api;
 
 import org.openmrs.annotation.Authorized;
 import org.openmrs.module.auditlogweb.ReadAuditLog;
+import org.openmrs.module.auditlogweb.api.dto.ReadAuditLogDTO;
 import org.openmrs.module.auditlogweb.api.utils.AuditLogConstants;
 
 import java.util.Date;
@@ -35,5 +36,7 @@ public interface ReadAuditService {
 	
 	@Authorized(AuditLogConstants.VIEW_READ_AUDIT_LOGS)
 	List<String> getEntityTypes();
+	
+	List<ReadAuditLogDTO> mapToReadAuditLogDTO(List<ReadAuditLog> readAuditLogs);
 	
 }
