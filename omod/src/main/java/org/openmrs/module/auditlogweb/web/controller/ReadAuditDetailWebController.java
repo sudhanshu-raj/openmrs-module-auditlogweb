@@ -71,7 +71,7 @@ public class ReadAuditDetailWebController {
 			
 			List<ReadAuditLog> relatedAudits = null;
 			if (readAudit.getSessionId() != null && !readAudit.getSessionId().isEmpty()) {
-				relatedAudits = readAuditService.getRelatedReadLogs(readAudit.getSessionId(), RELATED_EVENTS_LIMIT);
+				relatedAudits = readAuditService.getRelatedReadLogs(readAudit.getSessionId(), 0, RELATED_EVENTS_LIMIT);
 			}
 			
 			model.addAttribute("readAudit", readAudit);

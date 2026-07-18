@@ -47,8 +47,13 @@ public class ReadAuditServiceImpl extends BaseOpenmrsService implements ReadAudi
 	}
 	
 	@Override
-	public List<ReadAuditLog> getRelatedReadLogs(String sessionId, int limit) {
-		return readAuditDAO.getRelatedReadLogs(sessionId, limit);
+	public List<ReadAuditLog> getRelatedReadLogs(String sessionId, int page, int size) {
+		return readAuditDAO.getRelatedReadLogs(sessionId, page, size);
+	}
+	
+	@Override
+	public long countRelatedReadLogs(String sessionId) {
+		return readAuditDAO.countRelatedReadLogs(sessionId);
 	}
 	
 	@Override

@@ -106,22 +106,32 @@ class ReadAuditServiceImplTest {
 	void shouldDelegateGetRelatedReadAuditLogs() {
 		
 		List<ReadAuditLog> list = Collections.singletonList(mock(ReadAuditLog.class));
-		when(readAuditDAO.getRelatedReadLogs("session-123", 1)).thenReturn(list);
+		when(readAuditDAO.getRelatedReadLogs("session-123", 0, 1)).thenReturn(list);
 		
-		List<ReadAuditLog> result = readAuditService.getRelatedReadLogs("session-123", 1);
+		List<ReadAuditLog> result = readAuditService.getRelatedReadLogs("session-123", 0, 1);
 		assertSame(list, result);
-		verify(readAuditDAO).getRelatedReadLogs("session-123", 1);
+		verify(readAuditDAO).getRelatedReadLogs("session-123", 0, 1);
 	}
 	
 	@Test
 	void shouldReturnEmptyListWhenRelatedReadAuditNotFound() {
 		List<ReadAuditLog> list = Collections.emptyList();
-		when(readAuditDAO.getRelatedReadLogs("session-123", 1)).thenReturn(list);
+		when(readAuditDAO.getRelatedReadLogs("session-123", 0, 1)).thenReturn(list);
 		
-		List<ReadAuditLog> result = readAuditService.getRelatedReadLogs("session-123", 1);
+		List<ReadAuditLog> result = readAuditService.getRelatedReadLogs("session-123", 0, 1);
 		
 		assertSame(list, result);
 		assertTrue(result.isEmpty());
+	}
+	
+	@Test
+	void shouldDelegateCountRelatedReadAuditLogs() {
+		when(readAuditDAO.countRelatedReadLogs("session-123")).thenReturn(5L);
+		
+		long count = readAuditService.countRelatedReadLogs("session-123");
+		
+		assertEquals(5L, count);
+		verify(readAuditDAO).countRelatedReadLogs("session-123");
 	}
 	
 	@Test

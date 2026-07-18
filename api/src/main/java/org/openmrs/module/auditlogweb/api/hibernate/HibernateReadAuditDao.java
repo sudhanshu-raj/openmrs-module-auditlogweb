@@ -69,12 +69,23 @@ public class HibernateReadAuditDao implements ReadAuditDAO {
 		return (ReadAuditLog) query.uniqueResult();
 	}
 	
-	public List<ReadAuditLog> getRelatedReadLogs(String sessionId, int limit) {
+	@Override
+	public List<ReadAuditLog> getRelatedReadLogs(String sessionId, int page, int size) {
 		Query<ReadAuditLog> query = sessionFactory.getCurrentSession().createQuery(
 		    "from ReadAuditLog e where e.sessionId = :sessionId order by e.eventTime desc", ReadAuditLog.class);
 		query.setParameter("sessionId", sessionId);
-		query.setMaxResults(limit);
+		query.setFirstResult(page * size);
+		query.setMaxResults(size);
 		return query.getResultList();
+	}
+	
+	@Override
+	public long countRelatedReadLogs(String sessionId) {
+		Query<Long> query = sessionFactory.getCurrentSession()
+		        .createQuery("select count(e) from ReadAuditLog e where e.sessionId = :sessionId", Long.class);
+		query.setParameter("sessionId", sessionId);
+		Long result = query.uniqueResult();
+		return result != null ? result : 0L;
 	}
 	
 	@Override

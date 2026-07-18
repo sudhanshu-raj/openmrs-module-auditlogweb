@@ -101,7 +101,7 @@ class ReadAuditDetailWebControllerTest {
 		
 		when(mockLog.getSessionId()).thenReturn("session-test");
 		when(readAuditService.getReadAuditLogById(2)).thenReturn(mockLog);
-		when(readAuditService.getRelatedReadLogs("session-test", 10)).thenReturn(relatedList);
+		when(readAuditService.getRelatedReadLogs("session-test", 0, 10)).thenReturn(relatedList);
 		
 		mockMvc.perform(get("/module/auditlogweb/viewReadAudit.form").param("logId", "2")).andExpect(status().isOk())
 		        .andExpect(view().name("/module/auditlogweb/viewReadAuditLog"))
@@ -109,7 +109,7 @@ class ReadAuditDetailWebControllerTest {
 		        .andExpect(model().attribute("relatedAudits", relatedList));
 		
 		verify(readAuditService).getReadAuditLogById(2);
-		verify(readAuditService).getRelatedReadLogs("session-test", 10);
+		verify(readAuditService).getRelatedReadLogs("session-test", 0, 10);
 	}
 	
 	@Test

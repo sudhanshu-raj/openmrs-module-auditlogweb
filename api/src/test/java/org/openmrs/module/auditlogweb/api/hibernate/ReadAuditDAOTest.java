@@ -141,15 +141,29 @@ public class ReadAuditDAOTest {
 		List<ReadAuditLog> expected = Collections.singletonList(buildReadAuditLog("Patient", true, "admin"));
 		when(session.createQuery(anyString(), eq(ReadAuditLog.class))).thenReturn(readAuditLogQuery);
 		when(readAuditLogQuery.setParameter(eq("sessionId"), eq("session-123"))).thenReturn(readAuditLogQuery);
+		when(readAuditLogQuery.setFirstResult(0)).thenReturn(readAuditLogQuery);
 		when(readAuditLogQuery.setMaxResults(5)).thenReturn(readAuditLogQuery);
 		when(readAuditLogQuery.getResultList()).thenReturn(expected);
 		
-		List<ReadAuditLog> result = readAuditDAO.getRelatedReadLogs("session-123", 5);
+		List<ReadAuditLog> result = readAuditDAO.getRelatedReadLogs("session-123", 0, 5);
 		
 		assertNotNull(result);
 		assertThat(result, hasSize(1));
 		verify(readAuditLogQuery).setParameter("sessionId", "session-123");
+		verify(readAuditLogQuery).setFirstResult(0);
 		verify(readAuditLogQuery).setMaxResults(5);
+	}
+	
+	@Test
+	void shouldCountRelatedReadLogs() {
+		when(session.createQuery(anyString(), eq(Long.class))).thenReturn(countQuery);
+		when(countQuery.setParameter(eq("sessionId"), eq("session-123"))).thenReturn(countQuery);
+		when(countQuery.uniqueResult()).thenReturn(10L);
+		
+		long count = readAuditDAO.countRelatedReadLogs("session-123");
+		
+		assertThat(count, is(10L));
+		verify(countQuery).setParameter("sessionId", "session-123");
 	}
 	
 	@Test

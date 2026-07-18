@@ -28,7 +28,10 @@ public interface ReadAuditService {
 	ReadAuditLog getReadAuditLogById(Integer id);
 	
 	@Authorized(AuditLogConstants.VIEW_READ_AUDIT_LOGS)
-	List<ReadAuditLog> getRelatedReadLogs(String sessionId, int limit);
+	List<ReadAuditLog> getRelatedReadLogs(String sessionId, int page, int size);
+	
+	@Authorized(AuditLogConstants.VIEW_READ_AUDIT_LOGS)
+	long countRelatedReadLogs(String sessionId);
 	
 	@Authorized(AuditLogConstants.VIEW_READ_AUDIT_LOGS)
 	List<String> getEntityTypes();
