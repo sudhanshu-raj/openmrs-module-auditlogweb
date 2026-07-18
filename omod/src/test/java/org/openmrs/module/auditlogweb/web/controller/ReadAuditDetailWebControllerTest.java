@@ -13,8 +13,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.openmrs.api.APIAuthenticationException;
+import org.openmrs.api.context.Context;
+import org.openmrs.Patient;
+import org.openmrs.api.PatientService;
+import org.openmrs.module.auditlogweb.ReadAuditEntityMetadata;
 import org.openmrs.module.auditlogweb.ReadAuditLog;
 import org.openmrs.module.auditlogweb.api.ReadAuditService;
 import org.springframework.test.web.servlet.MockMvc;
@@ -29,6 +34,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mockStatic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -127,5 +133,34 @@ class ReadAuditDetailWebControllerTest {
 		mockMvc.perform(get("/module/auditlogweb/viewReadAudit.form").param("logId", "4")).andExpect(status().isOk())
 		        .andExpect(view().name("/module/auditlogweb/viewReadAuditLog"))
 		        .andExpect(model().attribute("errorMessage", "Error loading audit data: SQL Error"));
+	}
+	
+	@Test
+	void shouldLoadReadAuditDetailsWithPatientNames() throws Exception {
+		ReadAuditLog mockLog = mock(ReadAuditLog.class);
+		when(mockLog.getEntityName()).thenReturn("Patient");
+		when(mockLog.getSessionId()).thenReturn("session-test");
+		when(readAuditService.getReadAuditLogById(2)).thenReturn(mockLog);
+		
+		ReadAuditEntityMetadata metadata = mock(ReadAuditEntityMetadata.class);
+		when(metadata.getEntityUuid()).thenReturn("patient-uuid");
+		when(mockLog.getTargets()).thenReturn(Collections.singletonList(metadata));
+		
+		Patient mockPatient = mock(Patient.class);
+		when(mockPatient.getGivenName()).thenReturn("John");
+		
+		PatientService mockPatientService = mock(PatientService.class);
+		when(mockPatientService.getPatientByUuid("patient-uuid")).thenReturn(mockPatient);
+		
+		try (MockedStatic<Context> contextMock = mockStatic(Context.class)) {
+			contextMock.when(Context::getPatientService).thenReturn(mockPatientService);
+			
+			mockMvc.perform(get("/module/auditlogweb/viewReadAudit.form").param("logId", "2")).andExpect(status().isOk())
+			        .andExpect(view().name("/module/auditlogweb/viewReadAuditLog"))
+			        .andExpect(model().attribute("readAudit", mockLog))
+			        .andExpect(model().attribute("patientNames", Collections.singletonList("John")));
+		}
+		
+		verify(readAuditService).getReadAuditLogById(2);
 	}
 }

@@ -10,7 +10,10 @@
 package org.openmrs.module.auditlogweb.web.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.openmrs.Patient;
 import org.openmrs.api.APIAuthenticationException;
+import org.openmrs.api.context.Context;
+import org.openmrs.module.auditlogweb.ReadAuditEntityMetadata;
 import org.openmrs.module.auditlogweb.ReadAuditLog;
 import org.openmrs.module.auditlogweb.api.ReadAuditService;
 import org.slf4j.Logger;
@@ -69,13 +72,17 @@ public class ReadAuditDetailWebController {
 				return new ModelAndView(VIEW, model);
 			}
 			
-			List<ReadAuditLog> relatedAudits = null;
+			List<ReadAuditLog> relatedAudits = new ArrayList<>();
 			if (readAudit.getSessionId() != null && !readAudit.getSessionId().isEmpty()) {
 				relatedAudits = readAuditService.getRelatedReadLogs(readAudit.getSessionId(), 0, RELATED_EVENTS_LIMIT);
 			}
 			
 			model.addAttribute("readAudit", readAudit);
-			model.addAttribute("relatedAudits", relatedAudits != null ? relatedAudits : new ArrayList<>());
+			model.addAttribute("relatedAudits", relatedAudits);
+			
+			if ("Patient".equals(readAudit.getEntityName())) {
+				model.addAttribute("patientNames", getPatientNames(readAudit.getTargets()));
+			}
 			
 			return new ModelAndView(VIEW, model);
 		}
@@ -87,5 +94,16 @@ public class ReadAuditDetailWebController {
 			model.addAttribute("errorMessage", "Error loading audit data: " + e.getMessage());
 			return new ModelAndView(VIEW, model);
 		}
+	}
+	
+	private List<String> getPatientNames(List<ReadAuditEntityMetadata> entityMetadataList) {
+		List<String> patientNames = new ArrayList<>();
+		if (entityMetadataList != null) {
+			for (ReadAuditEntityMetadata entityMetadata : entityMetadataList) {
+				Patient patient = Context.getPatientService().getPatientByUuid(entityMetadata.getEntityUuid());
+				patientNames.add(patient != null ? patient.getGivenName() : "Unknown");
+			}
+		}
+		return patientNames;
 	}
 }

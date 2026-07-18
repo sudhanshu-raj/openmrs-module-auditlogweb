@@ -10,7 +10,6 @@
 package org.openmrs.module.auditlogweb.rest.exceptions;
 
 import org.hibernate.ObjectNotFoundException;
-import org.openmrs.api.APIAuthenticationException;
 import org.openmrs.module.auditlogweb.api.exception.AuditLogUnavailableException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -83,12 +82,6 @@ public class RestExceptionHandler {
 	@ExceptionHandler(AuditLogUnavailableException.class)
 	public ResponseEntity<Map<String, String>> handleAuditLogUnavailable(AuditLogUnavailableException ex) {
 		return buildResponseEntity("Audit Log Unavailable", ex.getMessage(), HttpStatus.SERVICE_UNAVAILABLE);
-	}
-	
-	@ExceptionHandler(APIAuthenticationException.class)
-	public ResponseEntity<Map<String, String>> handleAPIAuthenticationException(APIAuthenticationException ex) {
-		return buildResponseEntity("Authentication Failed", "User must be authenticated or have privilege to access this.",
-		    HttpStatus.UNAUTHORIZED);
 	}
 	
 	@ExceptionHandler(Exception.class)

@@ -115,22 +115,35 @@
         </div>
 
         <div class="info-section">
+            <c:set var="tooltipText" value="UUID of the fetched entity like Patient's UUID" />
+            <c:if test="${not empty patientNames}">
+                <c:set var="tooltipText" value="UUID and given name for the Patient" />
+            </c:if>
             <h2 class="section-title">
-                TARGET ENTITY UUIDS
+                TARGET ENTITY METADATA
                 <span class="tooltip-container">
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="info-icon-svg"><circle cx="12" cy="12" r="10"></circle>
                     <line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                    <span class="tooltip-text">UUID of the fetched entity like Patient UUID</span>
+                    <span class="tooltip-text"><c:out value="${tooltipText}" /></span>
                 </span>
             </h2>
             <div class="details-content">
                 <c:choose>
                     <c:when test="${not empty readAudit.targets}">
                         <ul class="uuid-list">
-                            <c:forEach var="target" items="${readAudit.targets}">
-                                <li><c:out value="${target.entityUuid}"/></li>
-                            </c:forEach>
+                            <c:choose>
+                                <c:when test="${not empty patientNames}">
+                                    <c:forEach var="target" items="${readAudit.targets}" varStatus="status">
+                                        <li><c:out value="${target.entityUuid} | ${patientNames.get(status.index)}"/></li>
+                                    </c:forEach>
+                                </c:when>
+                                <c:otherwise>
+                                    <c:forEach var="target" items="${readAudit.targets}">
+                                        <li><c:out value="${target.entityUuid}"/></li>
+                                    </c:forEach>
+                                </c:otherwise>
+                            </c:choose>
                         </ul>
                     </c:when>
                     <c:otherwise>
