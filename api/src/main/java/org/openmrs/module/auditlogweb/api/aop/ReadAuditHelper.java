@@ -97,6 +97,9 @@ class ReadAuditHelper {
 				userUUID = ctx.getLoggedInUserUUID();
 				ipAddress = ctx.getIpAddress();
 				userAgent = ctx.getUserAgent();
+				if (userAgent != null && userAgent.length() > 500) {
+					userAgent = userAgent.substring(0, 500);
+				}
 				sessionId = ctx.getSessionId();
 			}
 			
@@ -140,6 +143,9 @@ class ReadAuditHelper {
 			}
 			
 			if (!isReadSuccess || !newTargetEntities.isEmpty()) {
+				if (entityType == null || entityType.trim().isEmpty()) {
+					entityType = "UnknownEntity";
+				}
 				ReadAuditLog readAuditLog = ReadAuditLog.builder().entityName(entityType).eventTime(new Date())
 				        .username(username).userUUID(userUUID).userAgent(userAgent).sessionId(sessionId).ipAddress(ipAddress)
 				        .isReadSuccess(isReadSuccess).build();
