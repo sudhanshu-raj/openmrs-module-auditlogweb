@@ -62,6 +62,11 @@ public class ReadAuditWorker {
 	}
 	
 	public boolean submitTask(ReadAuditLog readAuditLog) {
+		if (!running) {
+			log.warn("ReadAuditWorker is stopped. Cannot accept new read audit task.");
+			return false;
+		}
+		
 		boolean isAdded = queue.offer(readAuditLog);
 		if (!isAdded) {
 			log.error("Queue is full!, can't submit new read audit task ");
@@ -85,8 +90,13 @@ public class ReadAuditWorker {
 				Thread.currentThread().interrupt();
 				break;
 			}
-			catch (Exception e) {
-				log.error("Error in ReadAuditWorker execution loop", e);
+			catch (Throwable t) {
+				log.error("Error in ReadAuditWorker execution loop", t);
+				if (t instanceof Error) {
+					log.error("Unexpected JVM Error encountered. Stopping ReadAuditWorker.");
+					running = false;
+					break;
+				}
 			}
 		}
 	}
@@ -102,8 +112,11 @@ public class ReadAuditWorker {
 			auditLogRecorder.logReadAudits(batch);
 			isBatchLogsSaved = true;
 		}
-		catch (Exception e) {
-			log.warn("Failed to save read audit logs in batch, falling back to one-by-one save", e);
+		catch (Throwable t) {
+			if (t instanceof Error) {
+				throw (Error) t;
+			}
+			log.warn("Failed to save read audit logs in batch, falling back to one-by-one save", t);
 		}
 		finally {
 			Context.closeSession();
@@ -115,9 +128,12 @@ public class ReadAuditWorker {
 					Context.openSession();
 					auditLogRecorder.logReadAudit(logEntry);
 				}
-				catch (Exception ex) {
-					log.error("Failed to save individual read audit log in fallback", ex);
+				catch (Throwable t) {
+					log.error("Failed to save individual read audit log in fallback", t);
 					removeCacheKeys(logEntry);
+					if (t instanceof Error) {
+						throw (Error) t;
+					}
 				}
 				finally {
 					Context.closeSession();

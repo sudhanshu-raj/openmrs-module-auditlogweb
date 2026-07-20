@@ -248,4 +248,27 @@ class ReadAuditWorkerTest {
 			context.verify(Context::closeSession, times(2));
 		}
 	}
+	
+	@Test
+	void shouldCloseTheLoopInCaseOfErrorInBackgroundThread() throws Exception {
+		ReadAuditLog logEntry = new ReadAuditLog();
+		worker.submitTask(logEntry);
+		
+		try (MockedStatic<Context> context = mockStatic(Context.class)) {
+			
+			doThrow(new OutOfMemoryError("Fatal Out Of Memory Error")).when(auditLogRecorder).logReadAudits(anyList());
+			
+			Method runMethod = ReadAuditWorker.class.getDeclaredMethod("run");
+			runMethod.setAccessible(true);
+			runMethod.invoke(worker);
+			
+			Field runningField = ReadAuditWorker.class.getDeclaredField("running");
+			runningField.setAccessible(true);
+			boolean running = (boolean) runningField.get(worker);
+			
+			assertFalse(running);
+			assertFalse(worker.submitTask(new ReadAuditLog()));
+		}
+	}
+	
 }
