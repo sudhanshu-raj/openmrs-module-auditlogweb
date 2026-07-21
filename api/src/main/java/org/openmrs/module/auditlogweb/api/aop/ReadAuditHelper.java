@@ -13,6 +13,15 @@ import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.openmrs.OpenmrsObject;
+import org.openmrs.Patient;
+import org.openmrs.Encounter;
+import org.openmrs.Obs;
+import org.openmrs.Visit;
+import org.openmrs.Order;
+import org.openmrs.Condition;
+import org.openmrs.Diagnosis;
+import org.openmrs.PatientProgram;
+import org.openmrs.MedicationDispense;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.context.Daemon;
@@ -217,8 +226,74 @@ class ReadAuditHelper {
 	
 	private ReadAuditEntityMetadata createReadAuditLogEntity(OpenmrsObject openmrsObject) {
 		if (openmrsObject.getId() != null && openmrsObject.getUuid() != null) {
-			return ReadAuditEntityMetadata.builder().entityUuid(openmrsObject.getUuid()).build();
+			String patientUuid = null;
+			String patientName = null;
+			
+			Patient patient = extractPatient(openmrsObject);
+			if (patient != null) {
+				patientUuid = patient.getUuid();
+				patientName = getPatientName(patient);
+			}
+			
+			return ReadAuditEntityMetadata.builder().entityUuid(openmrsObject.getUuid()).patientUuid(patientUuid)
+			        .patientName(patientName).build();
 		}
 		return null;
+	}
+	
+	private Patient extractPatient(OpenmrsObject obj) {
+		if (obj == null) {
+			return null;
+		}
+		if (obj instanceof Patient) {
+			return (Patient) obj;
+		}
+		if (obj instanceof Encounter) {
+			return ((Encounter) obj).getPatient();
+		}
+		if (obj instanceof Obs) {
+			Object person = ((Obs) obj).getPerson();
+			if (person instanceof Patient) {
+				return (Patient) person;
+			}
+		}
+		if (obj instanceof Visit) {
+			return ((Visit) obj).getPatient();
+		}
+		if (obj instanceof Condition) {
+			return ((Condition) obj).getPatient();
+		}
+		if (obj instanceof Diagnosis) {
+			return ((Diagnosis) obj).getPatient();
+		}
+		if (obj instanceof PatientProgram) {
+			return ((PatientProgram) obj).getPatient();
+		}
+		if (obj instanceof Order) {
+			return ((Order) obj).getPatient();
+		}
+		if (obj instanceof MedicationDispense) {
+			return ((MedicationDispense) obj).getPatient();
+		}
+		return null;
+	}
+	
+	private String getPatientName(Patient patient) {
+		if (patient == null) {
+			return null;
+		}
+		if (patient.getPersonName() != null) {
+			return patient.getPersonName().getFullName();
+		}
+		String given = patient.getGivenName();
+		String family = patient.getFamilyName();
+		if (given != null && family != null) {
+			return given + " " + family;
+		} else if (given != null) {
+			return given;
+		} else if (family != null) {
+			return family;
+		}
+		return "Unknown";
 	}
 }

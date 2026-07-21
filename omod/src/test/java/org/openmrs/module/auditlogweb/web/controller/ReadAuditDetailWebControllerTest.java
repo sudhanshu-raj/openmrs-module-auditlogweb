@@ -158,8 +158,28 @@ class ReadAuditDetailWebControllerTest {
 			mockMvc.perform(get("/module/auditlogweb/viewReadAudit.form").param("logId", "2")).andExpect(status().isOk())
 			        .andExpect(view().name("/module/auditlogweb/viewReadAuditLog"))
 			        .andExpect(model().attribute("readAudit", mockLog))
-			        .andExpect(model().attribute("patientNames", Collections.singletonList("John")));
+			        .andExpect(model().attribute("distinctPatientNames", Collections.singletonList("John")));
 		}
+		
+		verify(readAuditService).getReadAuditLogById(2);
+	}
+	
+	@Test
+	void shouldLoadReadAuditDetailsWithPreSavedPatientNames() throws Exception {
+		ReadAuditLog mockLog = mock(ReadAuditLog.class);
+		when(mockLog.getEntityName()).thenReturn("Encounter");
+		when(mockLog.getSessionId()).thenReturn("session-test");
+		when(readAuditService.getReadAuditLogById(2)).thenReturn(mockLog);
+		
+		ReadAuditEntityMetadata metadata = mock(ReadAuditEntityMetadata.class);
+		when(metadata.getEntityUuid()).thenReturn("encounter-uuid");
+		when(metadata.getPatientName()).thenReturn("John Doe");
+		when(mockLog.getTargets()).thenReturn(Collections.singletonList(metadata));
+		
+		mockMvc.perform(get("/module/auditlogweb/viewReadAudit.form").param("logId", "2")).andExpect(status().isOk())
+		        .andExpect(view().name("/module/auditlogweb/viewReadAuditLog"))
+		        .andExpect(model().attribute("readAudit", mockLog))
+		        .andExpect(model().attribute("distinctPatientNames", Collections.singletonList("John Doe")));
 		
 		verify(readAuditService).getReadAuditLogById(2);
 	}

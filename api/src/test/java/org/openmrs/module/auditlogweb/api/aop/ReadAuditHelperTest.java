@@ -18,7 +18,10 @@ import org.mockito.Mock;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockitoAnnotations;
 import org.openmrs.OpenmrsObject;
+import org.openmrs.Patient;
+import org.openmrs.Encounter;
 import org.openmrs.module.auditlogweb.AppCacheManager;
+import org.openmrs.module.auditlogweb.ReadAuditEntityMetadata;
 import org.openmrs.module.auditlogweb.ReadAuditLog;
 import org.openmrs.module.auditlogweb.ReadAuditWorker;
 import org.openmrs.module.auditlogweb.api.AuditLogContext;
@@ -309,6 +312,41 @@ class ReadAuditHelperTest {
 			assertEquals("anonymous", capturedLog.getUserUUID());
 			
 			verify(appCacheManager).set(key, true);
+		}
+		finally {
+			AuditLogContext.clear();
+		}
+	}
+	
+	@Test
+	void shouldExtractPatientAndPatientNameFromEncounter() {
+		buildAuditContext();
+		try {
+			Patient patient = mock(Patient.class);
+			when(patient.getUuid()).thenReturn("patient-uuid");
+			org.openmrs.PersonName pName = mock(org.openmrs.PersonName.class);
+			when(pName.getFullName()).thenReturn("John Doe");
+			when(patient.getPersonName()).thenReturn(pName);
+			
+			Encounter encounter = mock(Encounter.class);
+			when(encounter.getId()).thenReturn(1);
+			when(encounter.getUuid()).thenReturn("encounter-uuid");
+			when(encounter.getPatient()).thenReturn(patient);
+			
+			String key = "test-user:127.0.0.1:encounter-uuid";
+			when(appCacheManager.get(key)).thenReturn(null);
+			
+			readAuditHelper.saveReadAuditRequest("Encounter", true, encounter);
+			
+			ArgumentCaptor<ReadAuditLog> logCaptor = ArgumentCaptor.forClass(ReadAuditLog.class);
+			verify(readAuditWorker).submitTask(logCaptor.capture());
+			
+			ReadAuditLog capturedLog = logCaptor.getValue();
+			assertEquals(1, capturedLog.getTargets().size());
+			ReadAuditEntityMetadata metadata = capturedLog.getTargets().get(0);
+			assertEquals("encounter-uuid", metadata.getEntityUuid());
+			assertEquals("patient-uuid", metadata.getPatientUuid());
+			assertEquals("John Doe", metadata.getPatientName());
 		}
 		finally {
 			AuditLogContext.clear();

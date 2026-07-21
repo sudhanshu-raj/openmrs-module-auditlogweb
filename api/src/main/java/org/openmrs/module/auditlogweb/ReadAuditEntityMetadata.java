@@ -46,6 +46,12 @@ public class ReadAuditEntityMetadata {
 	@Column(name = "entity_uuid", nullable = false)
 	private String entityUuid;
 	
+	@Column(name = "patient_uuid", length = 38)
+	private String patientUuid;
+	
+	@Column(name = "patient_name")
+	private String patientName;
+	
 	public void setReadAuditLog(ReadAuditLog readAuditLog) {
 		if (this.readAuditLog != null) {
 			if (this.readAuditLog == readAuditLog) {

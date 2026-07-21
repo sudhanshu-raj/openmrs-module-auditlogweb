@@ -20,4 +20,8 @@ public class ReadAuditEntityMetadataDTO {
 	
 	private String entityUUID;
 	
+	private String patientUUID;
+	
+	private String patientName;
+	
 }

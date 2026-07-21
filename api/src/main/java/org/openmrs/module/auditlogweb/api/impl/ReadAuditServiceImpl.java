@@ -90,7 +90,8 @@ public class ReadAuditServiceImpl extends BaseOpenmrsService implements ReadAudi
 		List<ReadAuditEntityMetadataDTO> readAuditEntityMetadataDTOs = new ArrayList<>();
 		for (ReadAuditEntityMetadata currEntityMetadata : entityMetadataList) {
 			ReadAuditEntityMetadataDTO metadataDTO = ReadAuditEntityMetadataDTO.builder().id(currEntityMetadata.getId())
-			        .entityUUID(currEntityMetadata.getEntityUuid()).build();
+			        .entityUUID(currEntityMetadata.getEntityUuid()).patientUUID(currEntityMetadata.getPatientUuid())
+			        .patientName(currEntityMetadata.getPatientName()).build();
 			readAuditEntityMetadataDTOs.add(metadataDTO);
 		}
 		return readAuditEntityMetadataDTOs;

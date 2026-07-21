@@ -44,8 +44,34 @@
                                 <span class="badge badge-failure" style="text-transform: none;"><c:out value="${readAudit.entityName}"/></span>
                             </c:otherwise>
                         </c:choose>
+                </tr>
+                <c:if test="${not empty distinctPatientNames}">
+                <tr>
+                    <td class="label-cell">Patient Name(s)</td>
+                    <td>
+                        <c:choose>
+                            <c:when test="${distinctPatientNames.size() == 1}">
+                                <c:out value="${distinctPatientNames.get(0)}"/>
+                            </c:when>
+                            <c:otherwise>
+                                <span class="patient-toggle-container">
+                                    <span class="patient-primary-name"><c:out value="${distinctPatientNames.get(0)}"/></span>
+                                    <button type="button" class="btn-toggle-patients" onclick="togglePatientNamesList()">
+                                        <span id="patientToggleIcon">+</span> <span id="patientToggleText">${distinctPatientNames.size() - 1} more</span>
+                                    </button>
+                                </span>
+                                <div id="additionalPatientsList" style="display: none; margin-top: 5px; padding-left: 10px; border-left: 2px solid #1bac9a;">
+                                    <c:forEach var="name" items="${distinctPatientNames}" varStatus="status">
+                                        <c:if test="${status.index > 0}">
+                                            <div style="margin-bottom: 3px; font-weight: 600;"><c:out value="${name}"/></div>
+                                        </c:if>
+                                    </c:forEach>
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
                     </td>
                 </tr>
+                </c:if>
                 <tr>
                     <td class="label-cell">Username</td>
                     <td>
@@ -116,9 +142,6 @@
 
         <div class="info-section">
             <c:set var="tooltipText" value="UUID of the fetched entity like Patient's UUID" />
-            <c:if test="${not empty patientNames}">
-                <c:set var="tooltipText" value="UUID and given name for the Patient" />
-            </c:if>
             <h2 class="section-title">
                 TARGET ENTITY METADATA
                 <span class="tooltip-container">
@@ -132,18 +155,9 @@
                 <c:choose>
                     <c:when test="${not empty readAudit.targets}">
                         <ul class="uuid-list">
-                            <c:choose>
-                                <c:when test="${not empty patientNames}">
-                                    <c:forEach var="target" items="${readAudit.targets}" varStatus="status">
-                                        <li><c:out value="${target.entityUuid} | ${patientNames.get(status.index)}"/></li>
-                                    </c:forEach>
-                                </c:when>
-                                <c:otherwise>
-                                    <c:forEach var="target" items="${readAudit.targets}">
-                                        <li><c:out value="${target.entityUuid}"/></li>
-                                    </c:forEach>
-                                </c:otherwise>
-                            </c:choose>
+                             <c:forEach var="target" items="${readAudit.targets}">
+                                 <li><c:out value="${target.entityUuid}"/></li>
+                             </c:forEach>
                         </ul>
                     </c:when>
                     <c:otherwise>
@@ -213,5 +227,22 @@
 
     </c:if>
 </div>
+
+<script type="text/javascript">
+    function togglePatientNamesList() {
+        var list = document.getElementById("additionalPatientsList");
+        var icon = document.getElementById("patientToggleIcon");
+        var text = document.getElementById("patientToggleText");
+        if (list.style.display === "none") {
+            list.style.display = "block";
+            icon.innerText = "-";
+            text.innerText = "hide";
+        } else {
+            list.style.display = "none";
+            icon.innerText = "+";
+            text.innerText = (parseInt("${distinctPatientNames.size()}") - 1) + " more";
+        }
+    }
+</script>
 
 <%@ include file="/WEB-INF/template/footer.jsp"%>

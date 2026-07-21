@@ -27,6 +27,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.openmrs.module.auditlogweb.AuditlogwebConstants.MODULE_PATH;
@@ -80,8 +81,9 @@ public class ReadAuditDetailWebController {
 			model.addAttribute("readAudit", readAudit);
 			model.addAttribute("relatedAudits", relatedAudits);
 			
-			if ("Patient".equals(readAudit.getEntityName())) {
-				model.addAttribute("patientNames", getPatientNames(readAudit.getTargets()));
+			List<String> distinctPatientNames = getDistinctPatientNames(readAudit.getTargets(), readAudit.getEntityName());
+			if (!distinctPatientNames.isEmpty()) {
+				model.addAttribute("distinctPatientNames", distinctPatientNames);
 			}
 			
 			return new ModelAndView(VIEW, model);
@@ -96,14 +98,20 @@ public class ReadAuditDetailWebController {
 		}
 	}
 	
-	private List<String> getPatientNames(List<ReadAuditEntityMetadata> entityMetadataList) {
-		List<String> patientNames = new ArrayList<>();
+	private List<String> getDistinctPatientNames(List<ReadAuditEntityMetadata> entityMetadataList, String entityName) {
+		List<String> distinctPatientNames = new ArrayList<>();
 		if (entityMetadataList != null) {
 			for (ReadAuditEntityMetadata entityMetadata : entityMetadataList) {
-				Patient patient = Context.getPatientService().getPatientByUuid(entityMetadata.getEntityUuid());
-				patientNames.add(patient != null ? patient.getGivenName() : "Unknown");
+				String pName = entityMetadata.getPatientName();
+				if (pName == null && "Patient".equals(entityName)) {
+					Patient patient = Context.getPatientService().getPatientByUuid(entityMetadata.getEntityUuid());
+					pName = patient != null ? patient.getGivenName() : null;
+				}
+				if (pName != null && !pName.trim().isEmpty() && !distinctPatientNames.contains(pName)) {
+					distinctPatientNames.add(pName);
+				}
 			}
 		}
-		return patientNames;
+		return distinctPatientNames;
 	}
 }

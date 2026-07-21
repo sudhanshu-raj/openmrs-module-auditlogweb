@@ -84,3 +84,50 @@
     opacity: 1;
     transform: translate(-50%, 0);
 }
+
+.patient-toggle-container {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.patient-primary-name {
+    font-weight: 600;
+    color: #161616;
+}
+
+.btn-toggle-patients {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background-color: #e5f6f4;
+    color: #00463f;
+    border: 1px solid #1bac9a;
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.btn-toggle-patients:hover {
+    background-color: #1bac9a;
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(27, 172, 154, 0.2);
+}
+
+.btn-toggle-patients:active {
+    transform: translateY(1px);
+}
+
+#additionalPatientsList {
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}

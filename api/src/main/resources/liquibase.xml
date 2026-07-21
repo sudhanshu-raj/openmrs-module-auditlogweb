@@ -101,6 +101,8 @@
             <column name="entity_uuid" type="varchar(38)">
                 <constraints nullable="false"/>
             </column>
+            <column name="patient_uuid" type="varchar(38)"/>
+            <column name="patient_name" type="varchar(255)"/>
         </createTable>
         <addForeignKeyConstraint constraintName="fk_read_audit_entity_metadata_read_audit"
                                  baseTableName="read_audit_entity_metadata"
@@ -142,6 +144,4 @@
             <column name="entity_name"/>
         </createIndex>
     </changeSet>
-
-
 </databaseChangeLog>
