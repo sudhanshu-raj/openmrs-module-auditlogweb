@@ -93,6 +93,17 @@ class ReadAuditWorkerTest {
 	}
 	
 	@Test
+	void shouldFlushRemainingQueuedLogsOnDestroy() throws Exception {
+		ReadAuditLog logEntry = new ReadAuditLog();
+		worker.submitTask(logEntry);
+		
+		try (MockedStatic<Context> context = mockStatic(Context.class)) {
+			worker.destroy();
+			verify(auditLogRecorder).logReadAudits(Collections.singletonList(logEntry));
+		}
+	}
+	
+	@Test
 	void shouldSubmitTaskToQueue() throws Exception {
 		ReadAuditLog logEntry = new ReadAuditLog();
 		worker.submitTask(logEntry);

@@ -44,6 +44,8 @@ public class ReadAuditWorker {
 	
 	private volatile boolean running = true;
 	
+	private final long TIMEOUT_SECONDS = 60;
+	
 	@PostConstruct
 	public void init() {
 		log.info("Starting ReadAuditWorker background thread");
@@ -59,6 +61,7 @@ public class ReadAuditWorker {
 		if (workerThread != null) {
 			workerThread.interrupt();
 		}
+		flushRemainingQueueLogsToDB();
 	}
 	
 	public boolean submitTask(ReadAuditLog readAuditLog) {
@@ -160,5 +163,29 @@ public class ReadAuditWorker {
 		catch (Exception e) {
 			log.error("Failed to remove read audit keys", e);
 		}
+	}
+	
+	private void flushRemainingQueueLogsToDB() {
+		long startTime = System.currentTimeMillis();
+		long timeoutMs = TIMEOUT_SECONDS * 1000;
+		
+		log.info("Draining remaining read audit logs to DB. Max timeout: {} seconds", TIMEOUT_SECONDS);
+		
+		int savedCount = 0;
+		while (!queue.isEmpty()) {
+			if (System.currentTimeMillis() - startTime > timeoutMs) {
+				log.warn("Shutdown timeout reached! Aborting and discarding remaining {} read audit logs.", queue.size());
+				break;
+			}
+			
+			List<ReadAuditLog> batch = new ArrayList<>();
+			queue.drainTo(batch, 50);
+			
+			if (!batch.isEmpty()) {
+				saveBatch(batch);
+				savedCount += batch.size();
+			}
+		}
+		log.info("Successfully flushed {} logs to DB during shutdown.", savedCount);
 	}
 }
