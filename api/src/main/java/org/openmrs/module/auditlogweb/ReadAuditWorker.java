@@ -44,7 +44,7 @@ public class ReadAuditWorker {
 	
 	private volatile boolean running = true;
 	
-	private final long TIMEOUT_SECONDS = 60;
+	private static final long TIMEOUT_SECONDS = 10;
 	
 	@PostConstruct
 	public void init() {
@@ -60,6 +60,13 @@ public class ReadAuditWorker {
 		running = false;
 		if (workerThread != null) {
 			workerThread.interrupt();
+			try {
+				workerThread.join(TIMEOUT_SECONDS * 1000);
+			}
+			catch (InterruptedException e) {
+				log.warn("Worker thread got interrupted while waiting to stop", e);
+				Thread.currentThread().interrupt();
+			}
 		}
 		flushRemainingQueueLogsToDB();
 	}
