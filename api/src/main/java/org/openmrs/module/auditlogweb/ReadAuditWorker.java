@@ -21,7 +21,12 @@ import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * This has been used for the read audit log request to put the log in the queue and then a
@@ -174,25 +179,61 @@ public class ReadAuditWorker {
 	
 	private void flushRemainingQueueLogsToDB() {
 		long startTime = System.currentTimeMillis();
-		long timeoutMs = TIMEOUT_SECONDS * 1000;
+		long totalTimeoutMs = TIMEOUT_SECONDS * 1000;
+		
+		// We will stop draining new batches 2 seconds before the hard timeout totalTimeoutMs
+		long softTimeoutMs = Math.max(0, totalTimeoutMs - 2000);
 		
 		log.info("Draining remaining read audit logs to DB. Max timeout: {} seconds", TIMEOUT_SECONDS);
 		
+		ExecutorService executor = Executors.newSingleThreadExecutor();
 		int savedCount = 0;
-		while (!queue.isEmpty()) {
-			if (System.currentTimeMillis() - startTime > timeoutMs) {
-				log.warn("Shutdown timeout reached! Aborting and discarding remaining {} read audit logs.", queue.size());
-				break;
-			}
-			
-			List<ReadAuditLog> batch = new ArrayList<>();
-			queue.drainTo(batch, 50);
-			
-			if (!batch.isEmpty()) {
-				saveBatch(batch);
-				savedCount += batch.size();
+		
+		try {
+			while (!queue.isEmpty()) {
+				long elapsed = System.currentTimeMillis() - startTime;
+				
+				// Checking the soft timeout, if it exceeds,
+				// then we will stop accepting new logs so that DB can commit the processed logs.
+				if (elapsed > softTimeoutMs) {
+					log.warn("Soft shutdown timeout reached. Stopping batch draining. Discarding remaining {} logs.",
+					    queue.size());
+					break;
+				}
+				
+				List<ReadAuditLog> batch = new ArrayList<>();
+				queue.drainTo(batch, 20);
+				
+				if (!batch.isEmpty()) {
+					long remainingMs = totalTimeoutMs - (System.currentTimeMillis() - startTime);
+					if (remainingMs <= 0) {
+						break;
+					}
+					
+					// Let the saveBatch run in the separate thread, so we can halt its execution if timeout reached.
+					Future<?> future = executor.submit(() -> saveBatch(batch));
+					try {
+						future.get(remainingMs, TimeUnit.MILLISECONDS);
+						savedCount += batch.size();
+					}
+					catch (TimeoutException e) {
+						future.cancel(true);
+						log.error("Timeout of {}s reached while saving batch! Aborting DB write.", TIMEOUT_SECONDS);
+						break;
+					}
+					catch (Exception e) {
+						log.error("Error saving batch during shutdown", e);
+						break;
+					}
+				}
 			}
 		}
-		log.info("Successfully flushed {} logs to DB during shutdown.", savedCount);
+		finally {
+			executor.shutdownNow();
+		}
+		if (savedCount > 0) {
+			log.info("Successfully flushed {} logs to DB during shutdown.", savedCount);
+		}
 	}
+	
 }
