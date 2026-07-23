@@ -24,7 +24,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import static org.mockito.Mockito.mock;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -94,11 +98,26 @@ class ReadAuditWorkerTest {
 	
 	@Test
 	void shouldFlushRemainingQueuedLogsOnDestroy() throws Exception {
+		ExecutorService mockExecutor = mock(ExecutorService.class);
+		doAnswer(invocation -> {
+			Runnable runnable = invocation.getArgument(0);
+			runnable.run();
+			return mock(Future.class);
+		}).when(mockExecutor).submit(any(Runnable.class));
+		
+		ReadAuditWorker localWorker = new ReadAuditWorker(auditLogRecorder, appCacheManager) {
+			
+			@Override
+			ExecutorService getExecutorService() {
+				return mockExecutor;
+			}
+		};
+		
 		ReadAuditLog logEntry = new ReadAuditLog();
-		worker.submitTask(logEntry);
+		localWorker.submitTask(logEntry);
 		
 		try (MockedStatic<Context> context = mockStatic(Context.class)) {
-			worker.destroy();
+			localWorker.destroy();
 			verify(auditLogRecorder).logReadAudits(Collections.singletonList(logEntry));
 		}
 	}

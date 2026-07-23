@@ -177,6 +177,10 @@ public class ReadAuditWorker {
 		}
 	}
 	
+	ExecutorService getExecutorService() {
+		return Executors.newSingleThreadExecutor();
+	}
+	
 	private void flushRemainingQueueLogsToDB() {
 		long startTime = System.currentTimeMillis();
 		long totalTimeoutMs = TIMEOUT_SECONDS * 1000;
@@ -186,7 +190,7 @@ public class ReadAuditWorker {
 		
 		log.info("Draining remaining read audit logs to DB. Max timeout: {} seconds", TIMEOUT_SECONDS);
 		
-		ExecutorService executor = Executors.newSingleThreadExecutor();
+		ExecutorService executor = getExecutorService();
 		int savedCount = 0;
 		
 		try {
