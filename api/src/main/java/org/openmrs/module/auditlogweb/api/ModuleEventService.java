@@ -1,0 +1,33 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can
+ * obtain one at http://mozilla.org/MPL/2.0/. OpenMRS is also distributed under
+ * the terms of the Healthcare Disclaimer located at http://openmrs.org/license.
+ *
+ * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
+ * graphic logo is a trademark of OpenMRS Inc.
+ */
+package org.openmrs.module.auditlogweb.api;
+
+import org.openmrs.module.auditlogweb.ModuleEvent;
+
+import java.util.Date;
+import java.util.List;
+
+public interface ModuleEventService {
+	
+	void saveModuleEvent(String eventType, String moduleName, boolean isSuccess);
+	
+	void saveModuleEvent(ModuleEvent moduleEvent);
+	
+	List<ModuleEvent> getModuleEvents(String eventType, String moduleName, String username, String userUUID, Date startDate,
+	        Date endDate, int page, int size);
+	
+	long countModuleEvents(String eventType, String moduleName, String username, String userUUID, Date start, Date end);
+	
+	ModuleEvent getModuleEventById(Integer moduleEventId);
+	
+	List<ModuleEvent> getRelatedModuleEvents(String sessionId, int page, int size);
+	
+	public Integer countRelatedModuleEvents(String sessionId);
+}
