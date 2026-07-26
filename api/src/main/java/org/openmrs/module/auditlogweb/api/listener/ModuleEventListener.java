@@ -27,6 +27,12 @@ public class ModuleEventListener {
 	
 	private final ModuleEventService moduleEventService;
 	
+	/**
+	 * We're listening to the module event like MODULE_START, MODULE_STOP, MODULE_LOAD, MODULE_UNLOAD.
+	 * which got published from the core.We do not need the module action during the startup and
+	 * shutdown of application that's why checking if not isDaemonThread.Then further opening the new
+	 * session for the case if dur
+	 */
 	@EventListener
 	public void listenModuleAction(ModuleActionEvent moduleActionEvent) {
 		try {
@@ -38,17 +44,11 @@ public class ModuleEventListener {
 			String moduleName = moduleActionEvent.getModuleName();
 			boolean isSuccess = moduleActionEvent.isSuccess();
 			
-			Context.openSessionWithCurrentUser();
-			try {
-				moduleEventService.saveModuleEvent(eventType, moduleName, isSuccess);
-			}
-			finally {
-				Context.closeSessionWithCurrentUser();
-			}
+			moduleEventService.saveModuleEvent(eventType, moduleName, isSuccess);
 			
 			log.info("===Received module action event===");
-			log.info("Module action : {}", moduleActionEvent.getActionType());
-			log.info("Module name : {}", moduleActionEvent.getModuleName());
+			log.info("Module action : {}", eventType);
+			log.info("Module name : {}", moduleName);
 			log.info("=======");
 		}
 		catch (Exception e) {
