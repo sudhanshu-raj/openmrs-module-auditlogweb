@@ -1,0 +1,133 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can
+ * obtain one at http://mozilla.org/MPL/2.0/. OpenMRS is also distributed under
+ * the terms of the Healthcare Disclaimer located at http://openmrs.org/license.
+ *
+ * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
+ * graphic logo is a trademark of OpenMRS Inc.
+ */
+
+@import url('viewAuditLogDetail.css');
+
+.uuid-list {
+    margin: 0;
+    padding-left: 20px;
+    font-family: monospace;
+    font-size: 13px;
+    color: #161616;
+    line-height: 1.6;
+}
+
+.uuid-list li {
+    margin-bottom: 4px;
+}
+
+.tooltip-container {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    margin-left: 6px;
+    margin-top: -8px;
+    cursor: pointer;
+    vertical-align: middle;
+    text-transform: none;
+    text-decoration: none !important;
+}
+
+.info-icon-svg {
+    color: #8d8d8d;
+    transition: color 0.2s ease;
+}
+
+.tooltip-container:hover .info-icon-svg {
+    color: #1bac9a;
+}
+
+.tooltip-text {
+    visibility: hidden;
+    width: 270px;
+    background-color: #161616;
+    color: #ffffff;
+    text-align: left;
+    border-radius: 4px;
+    padding: 8px 12px;
+    position: absolute;
+    z-index: 100;
+    bottom: 150%;
+    left: 50%;
+    transform: translate(-50%, 8px);
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    font-size: 12px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 400;
+    line-height: 1.4;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    letter-spacing: normal;
+    pointer-events: none;
+}
+
+.tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: #161616 transparent transparent transparent;
+}
+
+.tooltip-container:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+.patient-toggle-container {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.patient-primary-name {
+    font-weight: 600;
+    color: #161616;
+}
+
+.btn-toggle-patients {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background-color: #e5f6f4;
+    color: #00463f;
+    border: 1px solid #1bac9a;
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.btn-toggle-patients:hover {
+    background-color: #1bac9a;
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(27, 172, 154, 0.2);
+}
+
+.btn-toggle-patients:active {
+    transform: translateY(1px);
+}
+
+#additionalPatientsList {
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}

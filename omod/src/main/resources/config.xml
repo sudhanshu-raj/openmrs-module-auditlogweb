@@ -47,6 +47,10 @@
 			<name>View Security Audit Logs</name>
 			<description>Allows viewing security audit logs</description>
 		</privilege>
+		<privilege>
+			<name>View Read Audit Logs</name>
+			<description>Allows viewing read audit logs in the system</description>
+		</privilege>
 	</privileges>
 
 	<globalProperty>

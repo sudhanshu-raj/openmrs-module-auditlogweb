@@ -11,6 +11,7 @@ package org.openmrs.module.auditlogweb.api;
 
 import org.junit.jupiter.api.Test;
 import org.openmrs.api.APIAuthenticationException;
+import org.openmrs.api.APIException;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.context.UserContext;
 import org.openmrs.module.auditlogweb.api.utils.AuditLogConstants;
@@ -45,5 +46,10 @@ class ServiceAuthorizationTest extends BaseContextSensitiveTest {
 		
 		assertFalse(Context.hasPrivilege(AuditLogConstants.VIEW_SECURITY_AUDIT_LOGS));
 		assertThrows(APIAuthenticationException.class, () -> Context.getService(AuditService.class).getSecurityEventById(1));
+	}
+	
+	@Test
+	void shouldNotAbleToAccessAuditLogRecorderFromContext() {
+		assertThrows(APIException.class, () -> Context.getService(AuditLogRecorder.class));
 	}
 }

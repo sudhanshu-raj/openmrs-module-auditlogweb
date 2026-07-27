@@ -1,0 +1,123 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can
+ * obtain one at http://mozilla.org/MPL/2.0/. OpenMRS is also distributed under
+ * the terms of the Healthcare Disclaimer located at http://openmrs.org/license.
+ *
+ * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
+ * graphic logo is a trademark of OpenMRS Inc.
+ */
+package org.openmrs.module.auditlogweb.api.aop;
+
+import lombok.RequiredArgsConstructor;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.springframework.stereotype.Component;
+
+@Aspect
+@Component
+@RequiredArgsConstructor
+public class ReadAuditAOP {
+	
+	private final ReadAuditHelper readAuditHelper;
+	
+	@Around("execution(* org.openmrs.api.PatientService.getPatient*(..)) || "
+	        + "execution(* org.openmrs.api.PatientService.getAllPatient*(..)) || "
+	        + "execution(* org.openmrs.api.PatientService.getDuplicatePatient*(..)) || "
+	        + "execution(* org.openmrs.api.PatientService.getAllerg*(..)) ")
+	public Object auditPatientDataRead(ProceedingJoinPoint joinPoint) throws Throwable {
+		return readAuditHelper.auditReadRequest(joinPoint);
+	}
+	
+	@Around("execution(* org.openmrs.api.EncounterService.getEncounter*(..)) || "
+	        + "execution(* org.openmrs.api.EncounterService.getAllEncounter*(..))")
+	public Object auditEncounterDataRead(ProceedingJoinPoint joinPoint) throws Throwable {
+		return readAuditHelper.auditReadRequest(joinPoint);
+	}
+	
+	@Around("(execution(* org.openmrs.api.ObsService.getObs*(..)) || "
+	        + "execution(* org.openmrs.api.ObsService.getRevisionObs(..)) || "
+	        + "execution(* org.openmrs.api.ObsService.getObservations*(..))) && "
+	        + "!execution(* org.openmrs.api.ObsService.getObservationCount(..))")
+	public Object auditObsDataRead(ProceedingJoinPoint joinPoint) throws Throwable {
+		return readAuditHelper.auditReadRequest(joinPoint);
+	}
+	
+	@Around("execution(* org.openmrs.api.CohortService.getCohort*(..)) || "
+	        + "execution(* org.openmrs.api.CohortService.getAllCohorts(..))")
+	public Object auditCohortDataRead(ProceedingJoinPoint joinPoint) throws Throwable {
+		return readAuditHelper.auditReadRequest(joinPoint);
+	}
+	
+	@Around("execution(* org.openmrs.api.ConditionService.getCondition*(..)) || "
+	        + "execution(* org.openmrs.api.ConditionService.getActiveConditions(..)) || "
+	        + "execution(* org.openmrs.api.ConditionService.getAllConditions(..)) ")
+	public Object auditConditionDataRead(ProceedingJoinPoint joinPoint) throws Throwable {
+		return readAuditHelper.auditReadRequest(joinPoint);
+	}
+	
+	@Around("execution(* org.openmrs.api.DiagnosisService.getDiagnosis*(..)) || "
+	        + "execution(* org.openmrs.api.DiagnosisService.getDiagnoses*(..)) || "
+	        + "execution(* org.openmrs.api.DiagnosisService.getAllDiagnosisAttributeTypes(..)) || "
+	        + "execution(* org.openmrs.api.DiagnosisService.getDiagnosisAttributeType*(..)) || "
+	        + "execution(* org.openmrs.api.DiagnosisService.getDiagnosisAttribute*(..)) || "
+	        + "execution(* org.openmrs.api.DiagnosisService.getUniqueDiagnoses(..)) ")
+	public Object auditDiagnosisDataRead(ProceedingJoinPoint joinPoint) throws Throwable {
+		return readAuditHelper.auditReadRequest(joinPoint);
+	}
+	
+	@Around("execution(* org.openmrs.api.MedicationDispenseService.getMedicationDispense*(..))")
+	public Object auditMedicationDispenseDataRead(ProceedingJoinPoint joinPoint) throws Throwable {
+		return readAuditHelper.auditReadRequest(joinPoint);
+	}
+	
+	@Around("execution(* org.openmrs.api.OrderService.getOrder*(..)) || "
+	        + "execution(* org.openmrs.api.OrderService.getDiscontinuationOrder(..)) || "
+	        + "execution(* org.openmrs.api.OrderService.getRevisionOrder(..)) || "
+	        + "execution(* org.openmrs.api.OrderService.getAllOrders*(..)) || "
+	        + "execution(* org.openmrs.api.OrderService.getActiveOrders(..)) || "
+	        + "execution(* org.openmrs.api.OrderService.getCareSetting*(..)) || "
+	        + "execution(* org.openmrs.api.OrderService.getSubtypes(..)) || "
+	        + "execution(* org.openmrs.api.OrderService.getDrug*(..)) || "
+	        + "execution(* org.openmrs.api.OrderService.getTestSpecimenSources(..)) ||"
+	        + "execution(* org.openmrs.api.OrderService.getNonCodedDrugConcept(..))")
+	public Object auditOrderDataRead(ProceedingJoinPoint joinPoint) throws Throwable {
+		return readAuditHelper.auditReadRequest(joinPoint);
+	}
+	
+	@Around("execution(* org.openmrs.api.PersonService.getPeople*(..)) || "
+	        + "execution(* org.openmrs.api.PersonService.getPerson*(..)) || "
+	        + "execution(* org.openmrs.api.PersonService.getSimilarPeople*(..)) || "
+	        + "execution(* org.openmrs.api.PersonService.getAllPersonAttributeTypes*(..)) || "
+	        + "execution(* org.openmrs.api.PersonService.getPersonAttribute*(..)) || "
+	        + "execution(* org.openmrs.api.PersonService.getRelationship*(..)) || "
+	        + "execution(* org.openmrs.api.PersonService.getAllRelationship*(..)) || "
+	        + "execution(* org.openmrs.api.PersonService.getAllPersonMergeLogs(..)) || "
+	        + "execution(* org.openmrs.api.PersonService.getWinningPersonMergeLogs(..)) || "
+	        + "execution(* org.openmrs.api.PersonService.getLosingPersonMergeLog(..)) ")
+	public Object auditPersonDataRead(ProceedingJoinPoint joinPoint) throws Throwable {
+		return readAuditHelper.auditReadRequest(joinPoint);
+	}
+	
+	@Around("execution(* org.openmrs.api.ProgramWorkflowService.getProgram*(..)) || "
+	        + "execution(* org.openmrs.api.ProgramWorkflowService.getAllPrograms(..)) || "
+	        + "execution(* org.openmrs.api.ProgramWorkflowService.getPatientStateByUuid(..)) || "
+	        + "execution(* org.openmrs.api.ProgramWorkflowService.getPatientProgram*(..)) || "
+	        + "execution(* org.openmrs.api.ProgramWorkflowService.getPossibleOutcomes(..)) || "
+	        + "execution(* org.openmrs.api.ProgramWorkflowService.getWorkflow*(..)) || "
+	        + "execution(* org.openmrs.api.ProgramWorkflowService.getConceptStateConversion*(..)) || "
+	        + "execution(* org.openmrs.api.ProgramWorkflowService.getAllConceptStateConversions(..)) || "
+	        + "execution(* org.openmrs.api.ProgramWorkflowService.getAllConceptStateConversions(..)) || "
+	        + "execution(* org.openmrs.api.ProgramWorkflowService.getState*(..)) ")
+	public Object auditProgramDataRead(ProceedingJoinPoint joinPoint) throws Throwable {
+		return readAuditHelper.auditReadRequest(joinPoint);
+	}
+	
+	@Around("execution(* org.openmrs.api.VisitService.getAllVisit*(..)) || "
+	        + "execution(* org.openmrs.api.VisitService.getVisit*(..)) || "
+	        + "execution(* org.openmrs.api.VisitService.getActiveVisitsByPatient(..)) ")
+	public Object auditVisitDataRead(ProceedingJoinPoint joinPoint) throws Throwable {
+		return readAuditHelper.auditReadRequest(joinPoint);
+	}
+}

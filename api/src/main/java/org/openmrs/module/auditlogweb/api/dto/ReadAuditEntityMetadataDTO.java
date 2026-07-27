@@ -7,14 +7,21 @@
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
-package org.openmrs.module.auditlogweb.api.utils;
+package org.openmrs.module.auditlogweb.api.dto;
 
-public final class AuditLogConstants {
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+@Builder
+public class ReadAuditEntityMetadataDTO {
 	
-	/* MODULE PRIVILEGES */
-	public static final String VIEW_AUDIT_LOGS = "View Audit Logs";
+	private Long id;
 	
-	public static final String VIEW_SECURITY_AUDIT_LOGS = "View Security Audit Logs";
+	private String entityUUID;
 	
-	public static final String VIEW_READ_AUDIT_LOGS = "View Read Audit Logs";
+	private String patientUUID;
+	
+	private String patientName;
+	
 }
