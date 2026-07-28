@@ -14,6 +14,7 @@ import org.openmrs.module.auditlogweb.AuditSecurityEvent;
 import org.openmrs.module.auditlogweb.api.AuditService;
 import org.openmrs.module.auditlogweb.api.dto.SecurityAuditLogDTO;
 import org.openmrs.module.auditlogweb.api.dto.SecurityLogResponseDTO;
+import org.openmrs.module.auditlogweb.api.utils.AuditSecurityEventType;
 import org.openmrs.module.auditlogweb.api.utils.UtilClass;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.springframework.http.HttpStatus;
@@ -46,6 +47,13 @@ public class SecurityAuditRestController {
 		
 		if (logId != null && logId <= 0) {
 			throw new IllegalArgumentException("Please provide a valid log ID");
+		}
+		
+		if (eventType != null) {
+			AuditSecurityEventType parsed = AuditSecurityEventType.fromName(eventType);
+			if (parsed == null || parsed == AuditSecurityEventType.UNKNOWN) {
+				throw new IllegalArgumentException("Invalid eventType " + eventType);
+			}
 		}
 		
 		if (logId != null) {
