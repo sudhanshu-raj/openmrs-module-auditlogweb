@@ -22,10 +22,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -33,99 +33,141 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class SecurityAuditRestControllerTest {
-	
+
 	private MockMvc mockMvc;
-	
+
 	@Mock
 	private AuditService auditService;
-	
+
 	@InjectMocks
 	private SecurityAuditRestController securityAuditRestController;
-	
+
 	@BeforeEach
 	public void setUp() {
 		MockitoAnnotations.openMocks(this);
 		mockMvc = MockMvcBuilders.standaloneSetup(securityAuditRestController)
 		        .setControllerAdvice(new RestExceptionHandler()).build();
 	}
-	
+
 	@Test
 	public void shouldFetchSecurityAuditsSuccessfullyWithoutFilter() throws Exception {
 		when(auditService.getSecurityEvents(null, null, null, null, 0, 15)).thenReturn(Collections.emptyList());
 		when(auditService.countSecurityEvents(null, null, null, null)).thenReturn(0L);
-		
+
 		mockMvc.perform(get("/rest/v1/securityauditlogs")).andExpect(status().isOk());
-		
+
 		verify(auditService).getSecurityEvents(null, null, null, null, 0, 15);
 		verify(auditService).countSecurityEvents(null, null, null, null);
 	}
-	
+
 	@Test
 	public void shouldFetchSecurityAuditsSuccessfullyWithIdFilter() throws Exception {
-		AuditSecurityEvent mockEvent = mock(AuditSecurityEvent.class);
-		when(mockEvent.getEventType()).thenReturn(AuditSecurityEventType.LOGIN_SUCCESS);
-		when(auditService.getSecurityEventById(1)).thenReturn(mockEvent);
-		
-		mockMvc.perform(get("/rest/v1/securityauditlogs").param("logId", "1")).andExpect(status().isOk());
-		
+		AuditSecurityEvent event = buildAuditSecurityEvent();
+		when(auditService.getSecurityEventById(1)).thenReturn(event);
+
+		mockMvc.perform(get("/rest/v1/securityauditlogs").param("logId", "1")).andExpect(status().isOk())
+		        .andExpect(jsonPath("$.securityAuditLogs[0].id", is(1)))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].eventType", is("LOGIN_SUCCESS")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].username", is("admin")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].userUuid", is("user-uuid-1")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].ipAddress", is("127.0.0.1")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].userAgent", is("user-agent-1")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].sessionId", is("session-123")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].details", is("{}"))).andExpect(jsonPath("$.totalLogs", is(1)))
+		        .andExpect(jsonPath("$.totalPages", is(1))).andExpect(jsonPath("$.currentPage", is(0)));
+
 		verify(auditService).getSecurityEventById(1);
 	}
-	
+
 	@Test
 	public void shouldThrowErrorIfInvalidLogIdPassed() throws Exception {
 		mockMvc.perform(get("/rest/v1/securityauditlogs").param("logId", "-1")).andExpect(status().isBadRequest())
 		        .andExpect(jsonPath("$.error", is("Bad Request")))
 		        .andExpect(jsonPath("$.message", is("Please provide a valid log ID")));
 	}
-	
+
 	@Test
 	public void shouldFetchSecurityAuditsSuccessfullyWithEventTypeFilter() throws Exception {
-		AuditSecurityEvent mockEvent = mock(AuditSecurityEvent.class);
-		when(mockEvent.getEventType()).thenReturn(AuditSecurityEventType.LOGIN_SUCCESS);
-		List<AuditSecurityEvent> eventList = Collections.singletonList(mockEvent);
-		
+		AuditSecurityEvent event = buildAuditSecurityEvent();
+		List<AuditSecurityEvent> eventList = Collections.singletonList(event);
+
 		when(auditService.getSecurityEvents("LOGIN_SUCCESS", null, null, null, 0, 15)).thenReturn(eventList);
 		when(auditService.countSecurityEvents("LOGIN_SUCCESS", null, null, null)).thenReturn(1L);
-		
-		mockMvc.perform(get("/rest/v1/securityauditlogs").param("eventType", "LOGIN_SUCCESS")).andExpect(status().isOk());
-		
+
+		mockMvc.perform(get("/rest/v1/securityauditlogs").param("eventType", "LOGIN_SUCCESS")).andExpect(status().isOk())
+		        .andExpect(jsonPath("$.securityAuditLogs[0].id", is(1)))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].eventType", is("LOGIN_SUCCESS")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].username", is("admin")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].userUuid", is("user-uuid-1")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].ipAddress", is("127.0.0.1")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].userAgent", is("user-agent-1")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].sessionId", is("session-123")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].details", is("{}"))).andExpect(jsonPath("$.totalLogs", is(1)))
+		        .andExpect(jsonPath("$.currentLogs", is(1))).andExpect(jsonPath("$.totalPages", is(1)))
+		        .andExpect(jsonPath("$.currentPage", is(0)));
+
 		verify(auditService).getSecurityEvents("LOGIN_SUCCESS", null, null, null, 0, 15);
 		verify(auditService).countSecurityEvents("LOGIN_SUCCESS", null, null, null);
 	}
-	
+
 	@Test
 	public void shouldFetchSecurityAuditsSuccessfullyWithUserNameFilter() throws Exception {
-		AuditSecurityEvent mockEvent = mock(AuditSecurityEvent.class);
-		when(mockEvent.getEventType()).thenReturn(AuditSecurityEventType.LOGIN_SUCCESS);
-		List<AuditSecurityEvent> eventList = Collections.singletonList(mockEvent);
-		
+		AuditSecurityEvent event = buildAuditSecurityEvent();
+		List<AuditSecurityEvent> eventList = Collections.singletonList(event);
+
 		when(auditService.getSecurityEvents(null, "admin", null, null, 0, 15)).thenReturn(eventList);
 		when(auditService.countSecurityEvents(null, "admin", null, null)).thenReturn(1L);
-		
-		mockMvc.perform(get("/rest/v1/securityauditlogs").param("username", "admin")).andExpect(status().isOk());
-		
+
+		mockMvc.perform(get("/rest/v1/securityauditlogs").param("username", "admin")).andExpect(status().isOk())
+		        .andExpect(jsonPath("$.securityAuditLogs[0].id", is(1)))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].eventType", is("LOGIN_SUCCESS")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].username", is("admin")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].userUuid", is("user-uuid-1")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].ipAddress", is("127.0.0.1")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].userAgent", is("user-agent-1")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].sessionId", is("session-123")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].details", is("{}"))).andExpect(jsonPath("$.totalLogs", is(1)))
+		        .andExpect(jsonPath("$.currentLogs", is(1))).andExpect(jsonPath("$.totalPages", is(1)))
+		        .andExpect(jsonPath("$.currentPage", is(0)));
+
 		verify(auditService).getSecurityEvents(null, "admin", null, null, 0, 15);
 		verify(auditService).countSecurityEvents(null, "admin", null, null);
 	}
-	
+
 	@Test
 	public void shouldThrowErrorIfInvalidDatePassed() throws Exception {
 		mockMvc.perform(get("/rest/v1/securityauditlogs").param("startDate", "31/02/2025"))
 		        .andExpect(status().isBadRequest()).andExpect(jsonPath("$.error", is("Bad Request"))).andExpect(jsonPath(
 		            "$.message", is("Invalid month date or date format: '31/02/2025'. Expected format: DD/MM/YYYY")));
 	}
-	
+
 	@Test
 	public void shouldFetchRelatedAuditsSuccessfully() throws Exception {
-		AuditSecurityEvent mockEvent = mock(AuditSecurityEvent.class);
-		when(mockEvent.getEventType()).thenReturn(AuditSecurityEventType.LOGIN_SUCCESS);
-		List<AuditSecurityEvent> relatedList = Collections.singletonList(mockEvent);
-		
+		AuditSecurityEvent event = buildAuditSecurityEvent();
+		List<AuditSecurityEvent> relatedList = Collections.singletonList(event);
+
 		when(auditService.getRelatedSecurityEvents("session-123", 10, 0)).thenReturn(relatedList);
-		
+		when(auditService.countRelatedSecurityEvents("session-123")).thenReturn(1L);
+
 		mockMvc.perform(get("/rest/v1/securityauditlogs/releatedAudits").param("sessionId", "session-123").param("page", "0")
-		        .param("size", "10")).andExpect(status().isOk());
-		
+		        .param("size", "10")).andExpect(status().isOk()).andExpect(jsonPath("$.securityAuditLogs[0].id", is(1)))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].eventType", is("LOGIN_SUCCESS")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].username", is("admin")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].userUuid", is("user-uuid-1")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].ipAddress", is("127.0.0.1")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].userAgent", is("user-agent-1")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].sessionId", is("session-123")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].details", is("{}"))).andExpect(jsonPath("$.totalLogs", is(1)))
+		        .andExpect(jsonPath("$.currentLogs", is(1))).andExpect(jsonPath("$.totalPages", is(1)))
+		        .andExpect(jsonPath("$.currentPage", is(0)));
+
 		verify(auditService).getRelatedSecurityEvents("session-123", 10, 0);
+		verify(auditService).countRelatedSecurityEvents("session-123");
+	}
+
+	private AuditSecurityEvent buildAuditSecurityEvent() {
+		return AuditSecurityEvent.builder().id(1).eventType(AuditSecurityEventType.LOGIN_SUCCESS).username("admin")
+		        .userUuid("user-uuid-1").eventTime(new Date()).ipAddress("127.0.0.1").userAgent("user-agent-1")
+		        .sessionId("session-123").details("{}").build();
 	}
 }

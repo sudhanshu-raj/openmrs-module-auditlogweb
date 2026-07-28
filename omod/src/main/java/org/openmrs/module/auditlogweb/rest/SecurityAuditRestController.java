@@ -51,12 +51,12 @@ public class SecurityAuditRestController {
 		if (logId != null) {
 			AuditSecurityEvent securityEvent = auditService.getSecurityEventById(logId);
 			if (securityEvent == null) {
-				return SecurityLogResponseDTO.builder().totalLogs(0).currentLogs(0)
+				return SecurityLogResponseDTO.builder().totalLogs(0).currentLogs(0).totalPages(0).currentPage(0)
 				        .securityAuditLogs(Collections.emptyList()).build();
 			}
 			List<SecurityAuditLogDTO> securityAuditLogsDTO = mapToDTOs(Collections.singletonList(securityEvent));
 			return SecurityLogResponseDTO.builder().totalLogs(1).currentLogs(1).securityAuditLogs(securityAuditLogsDTO)
-			        .build();
+			        .totalPages(1).currentPage(0).build();
 		}
 		
 		if (page < 0) {
