@@ -121,11 +121,11 @@ public class SecurityAuditRestControllerTest {
 		when(mockEvent.getEventType()).thenReturn(AuditSecurityEventType.LOGIN_SUCCESS);
 		List<AuditSecurityEvent> relatedList = Collections.singletonList(mockEvent);
 		
-		when(auditService.getRelatedSecurityEvents("session-123", 1000)).thenReturn(relatedList);
+		when(auditService.getRelatedSecurityEvents("session-123", 10, 0)).thenReturn(relatedList);
 		
 		mockMvc.perform(get("/rest/v1/securityauditlogs/releatedAudits").param("sessionId", "session-123").param("page", "0")
 		        .param("size", "10")).andExpect(status().isOk());
 		
-		verify(auditService).getRelatedSecurityEvents("session-123", 1000);
+		verify(auditService).getRelatedSecurityEvents("session-123", 10, 0);
 	}
 }

@@ -387,8 +387,13 @@ public class AuditServiceImpl extends BaseOpenmrsService implements AuditService
 	}
 	
 	@Override
-	public List<AuditSecurityEvent> getRelatedSecurityEvents(String sessionId, int limit) {
-		return auditDao.getRelatedSecurityEvents(sessionId, limit);
+	public List<AuditSecurityEvent> getRelatedSecurityEvents(String sessionId, int size, int page) {
+		return auditDao.getRelatedSecurityEvents(sessionId, size, page);
+	}
+	
+	@Override
+	public long countRelatedSecurityEvents(String sessionId) {
+		return auditDao.countRelatedSecurityEvent(sessionId);
 	}
 	
 	private Object fetchPreviousRevision(AuditEntity<?> entity, Object currentEntity) {

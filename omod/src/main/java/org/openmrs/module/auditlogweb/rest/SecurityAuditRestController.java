@@ -96,24 +96,14 @@ public class SecurityAuditRestController {
 			size = 15;
 		}
 		
-		List<AuditSecurityEvent> allRelated = auditService.getRelatedSecurityEvents(sessionId, 1000);
-		long totalCount = allRelated.size();
+		List<AuditSecurityEvent> allRelated = auditService.getRelatedSecurityEvents(sessionId, size, page);
+		long totalCount = auditService.countRelatedSecurityEvents(sessionId);
 		int totalPages = UtilClass.computeTotalPages(totalCount, size);
 		
-		int fromIndex = page * size;
-		List<AuditSecurityEvent> pagedList;
-		if (fromIndex >= allRelated.size()) {
-			pagedList = Collections.emptyList();
-		} else {
-			int toIndex = Math.min(fromIndex + size, allRelated.size());
-			pagedList = allRelated.subList(fromIndex, toIndex);
-		}
+		List<SecurityAuditLogDTO> securityAuditLogsDTO = mapToDTOs(allRelated);
 		
-		List<SecurityAuditLogDTO> securityAuditLogsDTO = mapToDTOs(pagedList);
-		
-		return SecurityLogResponseDTO.builder().totalLogs(totalCount)
-		        .currentLogs(securityAuditLogsDTO != null ? securityAuditLogsDTO.size() : 0).totalPages(totalPages)
-		        .currentPage(page).securityAuditLogs(securityAuditLogsDTO).build();
+		return SecurityLogResponseDTO.builder().totalLogs(totalCount).currentLogs(securityAuditLogsDTO.size())
+		        .totalPages(totalPages).currentPage(page).securityAuditLogs(securityAuditLogsDTO).build();
 	}
 	
 	private SecurityAuditLogDTO mapToDTO(AuditSecurityEvent event) {
