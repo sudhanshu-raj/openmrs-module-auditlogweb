@@ -156,7 +156,7 @@ public class SecurityAuditRestControllerTest {
 		when(auditService.getRelatedSecurityEvents("session-123", 10, 0)).thenReturn(relatedList);
 		when(auditService.countRelatedSecurityEvents("session-123")).thenReturn(1L);
 		
-		mockMvc.perform(get("/rest/v1/securityauditlogs/releatedAudits").param("sessionId", "session-123").param("page", "0")
+		mockMvc.perform(get("/rest/v1/securityauditlogs/relatedAudits").param("sessionId", "session-123").param("page", "0")
 		        .param("size", "10")).andExpect(status().isOk()).andExpect(jsonPath("$.securityAuditLogs[0].id", is(1)))
 		        .andExpect(jsonPath("$.securityAuditLogs[0].eventType", is("LOGIN_SUCCESS")))
 		        .andExpect(jsonPath("$.securityAuditLogs[0].username", is("admin")))

@@ -88,7 +88,7 @@ public class SecurityAuditRestController {
 		        .totalPages(totalPages).currentPage(page).securityAuditLogs(securityAuditLogsDTO).build();
 	}
 	
-	@GetMapping("/releatedAudits")
+	@GetMapping("/relatedAudits")
 	public SecurityLogResponseDTO fetchRelatedAudits(@RequestParam(value = "sessionId") String sessionId,
 	        @RequestParam(value = "page", defaultValue = "0") int page,
 	        @RequestParam(value = "size", defaultValue = "15") int size) {

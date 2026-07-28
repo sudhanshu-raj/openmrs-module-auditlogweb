@@ -134,7 +134,7 @@ public class ReadAuditRestControllerTest {
 		when(readAuditService.countRelatedReadLogs("session-123")).thenReturn(1L);
 		when(readAuditService.mapToReadAuditLogDTO(relatedList)).thenReturn(Collections.emptyList());
 		
-		mockMvc.perform(get("/rest/v1/readauditlogs/releatedAudits").param("sessionId", "session-123").param("page", "0")
+		mockMvc.perform(get("/rest/v1/readauditlogs/relatedAudits").param("sessionId", "session-123").param("page", "0")
 		        .param("size", "10")).andExpect(status().isOk());
 		
 		verify(readAuditService).getRelatedReadLogs("session-123", 0, 10);

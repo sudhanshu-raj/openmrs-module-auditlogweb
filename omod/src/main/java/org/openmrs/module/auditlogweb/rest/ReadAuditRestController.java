@@ -81,7 +81,7 @@ public class ReadAuditRestController {
 		
 	}
 	
-	@GetMapping("/releatedAudits")
+	@GetMapping("/relatedAudits")
 	public ReadAuditLogResponseDTO fetchRelatedAudits(@RequestParam(value = "sessionId") String sessionId,
 	        @RequestParam(value = "page", defaultValue = "0") int page,
 	        @RequestParam(value = "size", defaultValue = "15") int size) {
