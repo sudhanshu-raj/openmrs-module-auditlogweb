@@ -49,7 +49,7 @@ public class SecurityAuditRestController {
 			throw new IllegalArgumentException("Please provide a valid log ID");
 		}
 		
-		if (eventType != null) {
+		if (eventType != null && !eventType.trim().isEmpty()) {
 			AuditSecurityEventType parsed = AuditSecurityEventType.fromName(eventType);
 			if (parsed == null || parsed == AuditSecurityEventType.UNKNOWN) {
 				throw new IllegalArgumentException("Invalid eventType " + eventType);
