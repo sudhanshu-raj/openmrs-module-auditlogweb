@@ -714,8 +714,8 @@ public class AuditDao {
 	 * Retrieves the most recent N security events from the same session (for related activity).
 	 *
 	 * @param sessionId the session ID to filter by
-	 * @param page defines the particular page in a paginated view
 	 * @param size defines how many logs want in one go
+	 * @param page defines the particular page in a paginated view
 	 * @return a list of {@link AuditSecurityEvent} ordered by eventTime descending
 	 */
 	public List<AuditSecurityEvent> getRelatedSecurityEvents(String sessionId, int size, int page) {
@@ -727,7 +727,13 @@ public class AuditDao {
 		return query.getResultList();
 	}
 	
-	public long countRelatedSecurityEvent(String sessionId) {
+	/**
+	 * Returns the count for all related security events for the given session ID
+	 *
+	 * @param sessionId the session ID to filter by
+	 * @return the count of logs found
+	 */
+	public long countRelatedSecurityEvents(String sessionId) {
 		Query<Long> query = sessionFactory.getCurrentSession()
 		        .createQuery("select count(e) from AuditSecurityEvent e where e.sessionId = :sessionId", Long.class);
 		query.setParameter("sessionId", sessionId);

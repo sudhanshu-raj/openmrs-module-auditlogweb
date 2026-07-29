@@ -410,7 +410,7 @@ class AuditServiceImplTest {
 	
 	@Test
 	void shouldCountRelatedSecurityEvents() {
-		when(auditDao.countRelatedSecurityEvent("session-123")).thenReturn(10L);
+		when(auditDao.countRelatedSecurityEvents("session-123")).thenReturn(10L);
 		
 		long count = auditService.countRelatedSecurityEvents("session-123");
 		assertEquals(10L, count);

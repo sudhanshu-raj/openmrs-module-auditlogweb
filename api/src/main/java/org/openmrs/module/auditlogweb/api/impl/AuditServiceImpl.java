@@ -393,7 +393,7 @@ public class AuditServiceImpl extends BaseOpenmrsService implements AuditService
 	
 	@Override
 	public long countRelatedSecurityEvents(String sessionId) {
-		return auditDao.countRelatedSecurityEvent(sessionId);
+		return auditDao.countRelatedSecurityEvents(sessionId);
 	}
 	
 	private Object fetchPreviousRevision(AuditEntity<?> entity, Object currentEntity) {

@@ -612,7 +612,7 @@ class AuditDaoTest {
 		when(countQuery.setParameter(eq("sessionId"), eq("session-123"))).thenReturn(countQuery);
 		when(countQuery.uniqueResult()).thenReturn(10L);
 		
-		long count = auditDao.countRelatedSecurityEvent("session-123");
+		long count = auditDao.countRelatedSecurityEvents("session-123");
 		
 		assertThat(count, is(10L));
 		verify(countQuery).setParameter("sessionId", "session-123");
