@@ -13,7 +13,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
+import org.openmrs.api.APIAuthenticationException;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.auditlogweb.AuditSecurityEvent;
 import org.openmrs.module.auditlogweb.api.AuditService;
 import org.openmrs.module.auditlogweb.api.utils.AuditSecurityEventType;
@@ -26,8 +29,11 @@ import java.util.Date;
 import java.util.List;
 
 import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mockStatic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -91,6 +97,11 @@ public class SecurityAuditRestControllerTest {
 		mockMvc.perform(get("/rest/v1/securityauditlogs").param("eventType", "LOGIN_SUCESS"))
 		        .andExpect(status().isBadRequest()).andExpect(jsonPath("$.error", is("Bad Request")))
 		        .andExpect(jsonPath("$.message", is("Invalid eventType LOGIN_SUCESS")));
+	}
+	
+	@Test
+	public void shouldReturnStatusOkIfEmptyEventTypePassed() throws Exception {
+		mockMvc.perform(get("/rest/v1/securityauditlogs").param("eventType", "")).andExpect(status().isOk());
 	}
 	
 	@Test
@@ -170,6 +181,28 @@ public class SecurityAuditRestControllerTest {
 		
 		verify(auditService).getRelatedSecurityEvents("session-123", 10, 0);
 		verify(auditService).countRelatedSecurityEvents("session-123");
+	}
+	
+	@Test
+	public void shouldThrowUnauthorizedErrorIfNotAuthenticated() throws Exception {
+		when(auditService.getSecurityEvents(isNull(), isNull(), isNull(), isNull(), anyInt(), anyInt()))
+		        .thenThrow(new APIAuthenticationException("Privileges required: View Security Audit Logs"));
+		try (MockedStatic<Context> ctx = mockStatic(Context.class)) {
+			ctx.when(Context::isAuthenticated).thenReturn(false);
+			mockMvc.perform(get("/rest/v1/securityauditlogs")).andExpect(status().isUnauthorized())
+			        .andExpect(jsonPath("$.error", is("Unauthorized")));
+		}
+	}
+	
+	@Test
+	public void shouldThrowForbiddenErrorIfNotHasPrivileged() throws Exception {
+		when(auditService.getSecurityEvents(isNull(), isNull(), isNull(), isNull(), anyInt(), anyInt()))
+		        .thenThrow(new APIAuthenticationException("Privileges required: View Security Audit Logs"));
+		try (MockedStatic<Context> ctx = mockStatic(Context.class)) {
+			ctx.when(Context::isAuthenticated).thenReturn(true);
+			mockMvc.perform(get("/rest/v1/securityauditlogs")).andExpect(status().isForbidden())
+			        .andExpect(jsonPath("$.error", is("Forbidden")));
+		}
 	}
 	
 	private AuditSecurityEvent buildAuditSecurityEvent() {
