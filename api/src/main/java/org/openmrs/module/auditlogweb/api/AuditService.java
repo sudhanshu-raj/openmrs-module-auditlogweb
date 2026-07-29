@@ -334,12 +334,12 @@ public interface AuditService {
 	 * Retrieves the most recent N security events from the same session (for related activity).
 	 *
 	 * @param sessionId the session ID to filter by
-	 * @param size defines how many logs want in one go
 	 * @param page defines the particular page in a paginated view
+	 * @param size defines how many logs want in one go
 	 * @return a list of {@link AuditSecurityEvent} ordered by eventTime descending
 	 */
 	@Authorized(AuditLogConstants.VIEW_SECURITY_AUDIT_LOGS)
-	List<AuditSecurityEvent> getRelatedSecurityEvents(String sessionId, int size, int page);
+	List<AuditSecurityEvent> getRelatedSecurityEvents(String sessionId, int page, int size);
 	
 	/**
 	 * Counts the related security audit events with session ID filter.

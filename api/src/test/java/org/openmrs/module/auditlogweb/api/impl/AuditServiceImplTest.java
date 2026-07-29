@@ -397,10 +397,10 @@ class AuditServiceImplTest {
 		AuditSecurityEvent relatedSecurityEvent2 = AuditSecurityEvent.builder()
 		        .eventType(AuditSecurityEventType.LOGIN_SUCCESS).eventTime(new Date()).sessionId("session-123").build();
 		
-		when(auditDao.getRelatedSecurityEvents("session-123", 2, 0))
+		when(auditDao.getRelatedSecurityEvents("session-123", 0, 2))
 		        .thenReturn(Arrays.asList(relatedSecurityEvent1, relatedSecurityEvent2));
 		
-		List<AuditSecurityEvent> result = auditService.getRelatedSecurityEvents("session-123", 2, 0);
+		List<AuditSecurityEvent> result = auditService.getRelatedSecurityEvents("session-123", 0, 2);
 		
 		assertNotNull(result);
 		assertEquals(2, result.size());

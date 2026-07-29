@@ -580,16 +580,16 @@ class AuditDaoTest {
 		
 		when(session.createQuery(anyString(), eq(AuditSecurityEvent.class))).thenReturn(securityEventQuery);
 		when(securityEventQuery.setParameter("sessionId", sessionId)).thenReturn(securityEventQuery);
-		when(securityEventQuery.setFirstResult(0)).thenReturn(securityEventQuery);
-		when(securityEventQuery.setMaxResults(5)).thenReturn(securityEventQuery);
+		when(securityEventQuery.setFirstResult(30)).thenReturn(securityEventQuery);
+		when(securityEventQuery.setMaxResults(2)).thenReturn(securityEventQuery);
 		when(securityEventQuery.getResultList()).thenReturn(Arrays.asList(e1, e2));
 		
-		List<AuditSecurityEvent> result = auditDao.getRelatedSecurityEvents(sessionId, 5, 0);
+		List<AuditSecurityEvent> result = auditDao.getRelatedSecurityEvents(sessionId, 15, 2);
 		
 		assertNotNull(result);
 		assertThat(result, hasSize(2));
 		verify(securityEventQuery).setParameter("sessionId", sessionId);
-		verify(securityEventQuery).setMaxResults(5);
+		verify(securityEventQuery).setMaxResults(2);
 	}
 	
 	@Test
@@ -600,7 +600,7 @@ class AuditDaoTest {
 		when(securityEventQuery.setMaxResults(anyInt())).thenReturn(securityEventQuery);
 		when(securityEventQuery.getResultList()).thenReturn(Collections.emptyList());
 		
-		List<AuditSecurityEvent> result = auditDao.getRelatedSecurityEvents("sess-ghost", 10, 0);
+		List<AuditSecurityEvent> result = auditDao.getRelatedSecurityEvents("sess-ghost", 0, 10);
 		
 		assertNotNull(result);
 		assertThat(result, empty());

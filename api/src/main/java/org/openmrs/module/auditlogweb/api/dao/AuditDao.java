@@ -714,11 +714,11 @@ public class AuditDao {
 	 * Retrieves the most recent N security events from the same session (for related activity).
 	 *
 	 * @param sessionId the session ID to filter by
-	 * @param size defines how many logs want in one go
 	 * @param page defines the particular page in a paginated view
+	 * @param size defines how many logs want in one go
 	 * @return a list of {@link AuditSecurityEvent} ordered by eventTime descending
 	 */
-	public List<AuditSecurityEvent> getRelatedSecurityEvents(String sessionId, int size, int page) {
+	public List<AuditSecurityEvent> getRelatedSecurityEvents(String sessionId, int page, int size) {
 		Query<AuditSecurityEvent> query = sessionFactory.getCurrentSession().createQuery(
 		    "from AuditSecurityEvent e where e.sessionId = :sessionId order by e.eventTime desc", AuditSecurityEvent.class);
 		query.setParameter("sessionId", sessionId);
