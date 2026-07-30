@@ -16,10 +16,6 @@ import java.util.List;
 
 public interface ModuleEventService {
 	
-	void saveModuleEvent(String eventType, String moduleName, boolean isSuccess);
-	
-	void saveModuleEvent(ModuleEvent moduleEvent);
-	
 	List<ModuleEvent> getModuleEvents(String eventType, String moduleName, String username, String userUUID, Date startDate,
 	        Date endDate, int page, int size);
 	
@@ -29,5 +25,5 @@ public interface ModuleEventService {
 	
 	List<ModuleEvent> getRelatedModuleEvents(String sessionId, int page, int size);
 	
-	public Integer countRelatedModuleEvents(String sessionId);
+	Integer countRelatedModuleEvents(String sessionId);
 }

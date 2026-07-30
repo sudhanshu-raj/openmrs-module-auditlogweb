@@ -28,73 +28,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ModuleEventServiceImpl extends BaseOpenmrsService implements ModuleEventService {
 	
-	private final Logger log = LoggerFactory.getLogger(ModuleEventServiceImpl.class);
-	
 	private final ModuleEventDao moduleEventDao;
-	
-	@Override
-	public void saveModuleEvent(String eventType, String moduleName, boolean isSuccess) {
-		String username = null;
-		String userUUID = null;
-		String ipAddress = null;
-		String userAgent = null;
-		String sessionId = null;
-		
-		try {
-			AuditLogContext ctx = AuditLogContext.get();
-			if (ctx != null) {
-				username = ctx.getLoggedInUsername();
-				userUUID = ctx.getLoggedInUserUUID();
-				ipAddress = ctx.getIpAddress();
-				userAgent = ctx.getUserAgent();
-				if (userAgent != null && userAgent.length() > 500) {
-					userAgent = userAgent.substring(0, 500);
-				}
-				sessionId = ctx.getSessionId();
-			}
-			
-			if (userUUID == null) {
-				if (Context.isAuthenticated()) {
-					User user = Context.getAuthenticatedUser();
-					if (user != null && Daemon.isDaemonUser(user)) {
-						return;
-					}
-					if (user != null) {
-						username = user.getUsername();
-						if (username == null) {
-							username = user.getSystemId();
-						}
-						userUUID = user.getUuid();
-					}
-				}
-			}
-			
-			if (userUUID == null) {
-				userUUID = "anonymous";
-				username = "anonymous";
-			}
-			
-			ModuleEventType moduleEventType = ModuleEventType.fromName(eventType);
-			if (moduleEventType == null || moduleEventType == ModuleEventType.UNKNOWN) {
-				log.warn("Unknown module event type: {}", eventType);
-			}
-			if (moduleName == null || moduleName.isEmpty()) {
-				log.warn("Module name can't be null or empty");
-			}
-			ModuleEvent moduleEvent = ModuleEvent.builder().eventType(moduleEventType).moduleName(moduleName)
-			        .eventSuccess(isSuccess).username(username).userUUID(userUUID).eventTime(new Date()).ipAddress(ipAddress)
-			        .userAgent(userAgent).sessionId(sessionId).build();
-			saveModuleEvent(moduleEvent);
-		}
-		catch (Exception e) {
-			log.error("Error while saving module event", e);
-		}
-	}
-	
-	@Override
-	public void saveModuleEvent(ModuleEvent moduleEvent) {
-		moduleEventDao.saveModuleEvent(moduleEvent);
-	}
 	
 	@Override
 	public List<ModuleEvent> getModuleEvents(String eventType, String moduleName, String username, String userUUID,

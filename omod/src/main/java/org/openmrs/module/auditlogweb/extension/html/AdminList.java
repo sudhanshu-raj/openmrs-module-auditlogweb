@@ -20,19 +20,19 @@ import org.openmrs.module.web.extension.AdministrationSectionExt;
  * config.xml file.
  */
 public class AdminList extends AdministrationSectionExt {
-
+	
 	/**
 	 * @see org.openmrs.module.web.extension.AdministrationSectionExt#getTitle()
 	 */
 	public String getTitle() {
 		return "auditlogweb.title";
 	}
-
+	
 	/**
 	 * @see org.openmrs.module.web.extension.AdministrationSectionExt#getLinks()
 	 */
 	public Map<String, String> getLinks() {
-
+		
 		Map<String, String> map = new HashMap<String, String>();
 		map.put("module/auditlogweb/auditlogs.form", "View Audit Trails");
 		map.put("module/auditlogweb/securityauditlogs.form", "View Security Trails");
@@ -40,5 +40,5 @@ public class AdminList extends AdministrationSectionExt {
 		map.put("module/auditlogweb/moduleEvents.form", "View Module Event Trails");
 		return map;
 	}
-
+	
 }

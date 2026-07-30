@@ -33,15 +33,15 @@ import static org.openmrs.module.auditlogweb.AuditlogwebConstants.MODULE_PATH;
 @RequestMapping(value = MODULE_PATH + "/moduleEvents.form")
 @RequiredArgsConstructor
 public class ModuleEventController {
-
+	
 	private final Logger log = LoggerFactory.getLogger(ModuleEventController.class);
-
+	
 	private static final String VIEW = MODULE_PATH + "/moduleEvents";
-
+	
 	private final String ACCESS_DENIED_VIEW = MODULE_PATH + "/accessDenied";
-
+	
 	private final ModuleEventService moduleEventService;
-
+	
 	@GetMapping()
 	public String onView(@RequestParam(value = "eventType", required = false) String eventType,
 	        @RequestParam(value = "moduleName", required = false) String moduleName,
@@ -51,17 +51,17 @@ public class ModuleEventController {
 	        @RequestParam(value = "endDate", required = false) String endDate,
 	        @RequestParam(value = "page", defaultValue = "0") int page,
 	        @RequestParam(value = "size", defaultValue = "15") int size, Model model) {
-
+		
 		Date start = UtilClass.toStartDate(UtilClass.parse(startDate));
 		Date end = UtilClass.toEndDate(UtilClass.parse(endDate));
-
+		
 		try {
-
+			
 			List<ModuleEvent> events = moduleEventService.getModuleEvents(eventType, moduleName, username, userUUID, start,
 			    end, page, size);
 			long totalCount = moduleEventService.countModuleEvents(eventType, moduleName, username, userUUID, start, end);
 			int totalPages = UtilClass.computeTotalPages(totalCount, size);
-
+			
 			model.addAttribute("events", events);
 			model.addAttribute("totalCount", totalCount);
 			model.addAttribute("totalPages", totalPages);
@@ -86,8 +86,8 @@ public class ModuleEventController {
 			model.addAttribute("eventTypes", ModuleEventType.values());
 			model.addAttribute("page", "moduleventlogs");
 		}
-
+		
 		return VIEW;
 	}
-
+	
 }

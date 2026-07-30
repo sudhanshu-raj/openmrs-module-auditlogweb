@@ -10,10 +10,9 @@
 package org.openmrs.module.auditlogweb.api.listener;
 
 import lombok.RequiredArgsConstructor;
-import org.openmrs.api.context.Context;
 import org.openmrs.api.context.Daemon;
 import org.openmrs.module.ModuleActionEvent;
-import org.openmrs.module.auditlogweb.api.ModuleEventService;
+import org.openmrs.module.auditlogweb.api.AuditLogRecorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
@@ -25,7 +24,7 @@ public class ModuleEventListener {
 	
 	private final Logger log = LoggerFactory.getLogger(ModuleEventListener.class);
 	
-	private final ModuleEventService moduleEventService;
+	private final AuditLogRecorder auditLogRecorder;
 	
 	/**
 	 * We're listening to the module event like MODULE_START, MODULE_STOP, MODULE_LOAD, MODULE_UNLOAD.
@@ -44,12 +43,7 @@ public class ModuleEventListener {
 			String moduleName = moduleActionEvent.getModuleName();
 			boolean isSuccess = moduleActionEvent.isSuccess();
 			
-			moduleEventService.saveModuleEvent(eventType, moduleName, isSuccess);
-			
-			log.info("===Received module action event===");
-			log.info("Module action : {}", eventType);
-			log.info("Module name : {}", moduleName);
-			log.info("=======");
+			auditLogRecorder.logModuleEvent(eventType, moduleName, isSuccess);
 		}
 		catch (Exception e) {
 			log.error("Error occur while listening to module events", e);
