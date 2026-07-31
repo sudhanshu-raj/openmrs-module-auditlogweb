@@ -98,11 +98,15 @@ public class AuditLogRecorderImpl implements AuditLogRecorder {
 			}
 			
 			ModuleEventType moduleEventType = ModuleEventType.fromName(eventType);
-			if (moduleEventType == null || moduleEventType == ModuleEventType.UNKNOWN) {
-				log.warn("Unknown module event type: {}", eventType);
-			}
+			
 			if (moduleName == null || moduleName.isEmpty()) {
 				log.warn("Module name can't be null or empty");
+				return;
+			}
+			
+			if (moduleEventType == null || moduleEventType == ModuleEventType.UNKNOWN) {
+				log.warn("Unknown module event type: {}", eventType);
+				return;
 			}
 			ModuleEvent moduleEvent = ModuleEvent.builder().eventType(moduleEventType).moduleName(moduleName)
 			        .eventSuccess(isSuccess).username(username).userUUID(userUUID).eventTime(new Date()).ipAddress(ipAddress)

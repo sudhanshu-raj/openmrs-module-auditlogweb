@@ -9,37 +9,60 @@
  */
 package org.openmrs.module.auditlogweb.api;
 
+import org.apache.commons.lang.StringUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
+
 import org.mockito.Mock;
+import org.mockito.InjectMocks;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
+import org.mockito.ArgumentCaptor;
+
+import org.openmrs.User;
 import org.openmrs.api.APIException;
 import org.openmrs.api.context.Context;
+import org.openmrs.api.context.Daemon;
+import org.openmrs.module.auditlogweb.ModuleEvent;
 import org.openmrs.module.auditlogweb.ReadAuditLog;
+import org.openmrs.module.auditlogweb.api.dao.ModuleEventDao;
 import org.openmrs.module.auditlogweb.api.dao.ReadAuditDAO;
 import org.openmrs.module.auditlogweb.api.impl.AuditLogRecorderImpl;
+import org.openmrs.module.auditlogweb.api.utils.ModuleEventType;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 public class AuditLogRecorderTest {
 	
 	@Mock
 	private ReadAuditDAO readAuditDAO;
 	
+	@Mock
+	private ModuleEventDao moduleEventDao;
+	
 	@InjectMocks
 	private AuditLogRecorderImpl auditLogRecorder;
+	
+	private MockedStatic<AuditLogContext> mockedAuditLogContext;
+	
+	private MockedStatic<Context> mockedContext;
 	
 	@BeforeEach
 	void setUp() {
 		MockitoAnnotations.openMocks(this);
+		mockedAuditLogContext = mockStatic(AuditLogContext.class);
+		mockedContext = mockStatic(Context.class);
+	}
+	
+	@AfterEach
+	void tearDown() {
+		mockedAuditLogContext.close();
+		mockedContext.close();
 	}
 	
 	@Test
@@ -68,11 +91,99 @@ public class AuditLogRecorderTest {
 	
 	@Test
 	void shouldNotAbleToAccessThisObjectOutsideThisModule() {
-		try (MockedStatic<Context> contextMock = mockStatic(Context.class)) {
-			contextMock.when(() -> Context.getService(AuditLogRecorder.class))
-			        .thenThrow(new APIException("Service not found"));
-			
-			assertThrows(APIException.class, () -> Context.getService(AuditLogRecorder.class));
+		mockedContext.when(() -> Context.getService(AuditLogRecorder.class))
+		        .thenThrow(new APIException("Service not found"));
+		assertThrows(APIException.class, () -> Context.getService(AuditLogRecorder.class));
+		
+	}
+	
+	@Test
+	void shouldLogModuleEventIfAllValuePresentAndCorrect() {
+		
+		String longUserAgent = StringUtils.repeat("A", 500);
+		AuditLogContext ctx = mock(AuditLogContext.class);
+		when(ctx.getLoggedInUsername()).thenReturn("admin");
+		when(ctx.getLoggedInUserUUID()).thenReturn("user-uuid-123");
+		when(ctx.getIpAddress()).thenReturn("127.0.0.1");
+		when(ctx.getUserAgent()).thenReturn(longUserAgent);
+		when(ctx.getSessionId()).thenReturn("session-abc");
+		
+		try (MockedStatic<ModuleEventType> mockedModuleEventType = mockStatic(ModuleEventType.class)) {
+			mockedAuditLogContext.when(AuditLogContext::get).thenReturn(ctx);
+			mockedModuleEventType.when(() -> ModuleEventType.fromName("MODULE_LOAD"))
+			        .thenReturn(ModuleEventType.MODULE_LOAD);
+			auditLogRecorder.logModuleEvent("MODULE_LOAD", "event", true);
 		}
+		
+		ArgumentCaptor<ModuleEvent> eventCaptor = ArgumentCaptor.forClass(ModuleEvent.class);
+		verify(moduleEventDao).saveModuleEvent(eventCaptor.capture());
+		ModuleEvent captured = eventCaptor.getValue();
+		
+		assertEquals("admin", captured.getUsername());
+		assertEquals("user-uuid-123", captured.getUserUUID());
+		assertEquals(500, captured.getUserAgent().length());
+		assertEquals("event", captured.getModuleName());
+		assertTrue(captured.isEventSuccess());
+	}
+	
+	@Test
+	void logModuleEvent_shouldReturnEarlyIfDaemonUser() {
+		
+		mockedAuditLogContext.when(AuditLogContext::get).thenReturn(null);
+		mockedContext.when(Context::isAuthenticated).thenReturn(true);
+		
+		User daemonUser = mock(User.class);
+		mockedContext.when(Context::getAuthenticatedUser).thenReturn(daemonUser);
+		
+		try (MockedStatic<Daemon> mockedDaemon = mockStatic(Daemon.class)) {
+			mockedDaemon.when(() -> Daemon.isDaemonUser(daemonUser)).thenReturn(true);
+			auditLogRecorder.logModuleEvent("MODULE_LOAD", "event", true);
+		}
+		
+		verify(moduleEventDao, never()).saveModuleEvent(any(ModuleEvent.class));
+	}
+	
+	@Test
+	void logModuleEvent_shouldFallbackToAnonymousUserIfNoUserContext() {
+		mockedAuditLogContext.when(AuditLogContext::get).thenReturn(null);
+		mockedContext.when(Context::isAuthenticated).thenReturn(false);
+		
+		try (MockedStatic<ModuleEventType> mockedModuleEventType = mockStatic(ModuleEventType.class)) {
+			mockedModuleEventType.when(() -> ModuleEventType.fromName("MODULE_LOAD"))
+			        .thenReturn(ModuleEventType.MODULE_LOAD);
+			auditLogRecorder.logModuleEvent("MODULE_LOAD", "event", true);
+		}
+		
+		ArgumentCaptor<ModuleEvent> eventCaptor = ArgumentCaptor.forClass(ModuleEvent.class);
+		verify(moduleEventDao).saveModuleEvent(eventCaptor.capture());
+		ModuleEvent captured = eventCaptor.getValue();
+		
+		assertEquals("anonymous", captured.getUsername());
+		assertEquals("anonymous", captured.getUserUUID());
+	}
+	
+	@Test
+	void logModule_shouldReturnEarlyIfInvalidModuleName() {
+		mockedAuditLogContext.when(AuditLogContext::get).thenReturn(null);
+		
+		auditLogRecorder.logModuleEvent("MODULE_LOAD", "", true);
+		
+		verify(moduleEventDao, never()).saveModuleEvent(any(ModuleEvent.class));
+	}
+	
+	@Test
+	void logModule_shouldReturnEarlyIfInvalidModuleType() {
+		mockedAuditLogContext.when(AuditLogContext::get).thenReturn(null);
+		
+		auditLogRecorder.logModuleEvent("MODULE_FINISH", "event", true);
+		
+		verify(moduleEventDao, never()).saveModuleEvent(any(ModuleEvent.class));
+	}
+	
+	@Test
+	void shouldDelegateSaveModuleEventAuditLog() {
+		ModuleEvent mockLog = mock(ModuleEvent.class);
+		auditLogRecorder.logModuleEvent(mockLog);
+		verify(moduleEventDao).saveModuleEvent(mockLog);
 	}
 }
