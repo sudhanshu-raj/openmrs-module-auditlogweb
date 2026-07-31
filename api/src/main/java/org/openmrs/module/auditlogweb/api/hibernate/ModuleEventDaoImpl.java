@@ -97,7 +97,7 @@ public class ModuleEventDaoImpl implements ModuleEventDao {
 	}
 	
 	@Override
-	public Integer countModuleEvents(String eventType, String moduleName, String username, String userUUID, Date startDate,
+	public Long countModuleEvents(String eventType, String moduleName, String username, String userUUID, Date startDate,
 	        Date endDate) {
 		
 		String hql = "select count(e) "
@@ -109,10 +109,10 @@ public class ModuleEventDaoImpl implements ModuleEventDao {
 		
 		try {
 			Long result = query.getSingleResult();
-			return result != null ? result.intValue() : 0;
+			return result != null ? result : 0L;
 		}
 		catch (NoResultException e) {
-			return 0;
+			return 0L;
 		}
 	}
 	
@@ -132,17 +132,16 @@ public class ModuleEventDaoImpl implements ModuleEventDao {
 	}
 	
 	@Override
-	public Integer countRelatedModuleEvents(String sessionId) {
+	public Long countRelatedModuleEvents(String sessionId) {
 		Query<Long> query = sessionFactory.getCurrentSession()
 		        .createQuery("select count(e) from ModuleEvent e where e.sessionId = :sessionId", Long.class);
 		query.setParameter("sessionId", sessionId);
 		
 		try {
-			Long result = query.getSingleResult();
-			return result != null ? result.intValue() : 0;
+			return query.getSingleResult();
 		}
 		catch (NoResultException e) {
-			return 0;
+			return 0L;
 		}
 	}
 	

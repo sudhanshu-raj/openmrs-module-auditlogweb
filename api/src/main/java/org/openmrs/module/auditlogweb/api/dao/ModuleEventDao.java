@@ -21,12 +21,12 @@ public interface ModuleEventDao {
 	List<ModuleEvent> getModuleEvents(String eventType, String moduleName, String username, String userUUID, Date startDate,
 	        Date endDate, int page, int size);
 	
-	Integer countModuleEvents(String eventType, String moduleName, String username, String userUUID, Date startDate,
+	Long countModuleEvents(String eventType, String moduleName, String username, String userUUID, Date startDate,
 	        Date endDate);
 	
 	ModuleEvent getModuleEventById(Integer moduleEventId);
 	
 	List<ModuleEvent> getRelatedModuleEvents(String sessionId, int page, int size);
 	
-	Integer countRelatedModuleEvents(String sessionId);
+	Long countRelatedModuleEvents(String sessionId);
 }

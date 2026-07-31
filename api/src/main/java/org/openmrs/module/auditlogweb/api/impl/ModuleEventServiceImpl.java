@@ -53,7 +53,7 @@ public class ModuleEventServiceImpl extends BaseOpenmrsService implements Module
 	}
 	
 	@Override
-	public Integer countRelatedModuleEvents(String sessionId) {
+	public long countRelatedModuleEvents(String sessionId) {
 		return moduleEventDao.countRelatedModuleEvents(sessionId);
 	}
 }

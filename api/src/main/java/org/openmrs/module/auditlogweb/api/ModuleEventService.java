@@ -25,5 +25,5 @@ public interface ModuleEventService {
 	
 	List<ModuleEvent> getRelatedModuleEvents(String sessionId, int page, int size);
 	
-	Integer countRelatedModuleEvents(String sessionId);
+	long countRelatedModuleEvents(String sessionId);
 }
