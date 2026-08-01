@@ -12,6 +12,7 @@ package org.openmrs.module.auditlogweb.api.listener;
 import lombok.RequiredArgsConstructor;
 import org.openmrs.api.context.Daemon;
 import org.openmrs.module.ModuleActionEvent;
+import org.openmrs.module.ModuleEventType;
 import org.openmrs.module.auditlogweb.api.AuditLogRecorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,11 +40,11 @@ public class ModuleEventListener {
 				return;
 			}
 			
-			String eventType = String.valueOf(moduleActionEvent.getActionType());
+			ModuleEventType moduleEventType = moduleActionEvent.getActionType();
 			String moduleName = moduleActionEvent.getModuleName();
 			boolean isSuccess = moduleActionEvent.isSuccess();
 			
-			auditLogRecorder.logModuleEvent(eventType, moduleName, isSuccess);
+			auditLogRecorder.logModuleEvent(moduleEventType, moduleName, isSuccess);
 		}
 		catch (Exception e) {
 			log.error("Error occur while listening to module events", e);

@@ -9,6 +9,7 @@
  */
 package org.openmrs.module.auditlogweb.api.dao;
 
+import org.openmrs.module.ModuleEventType;
 import org.openmrs.module.auditlogweb.ModuleEvent;
 
 import java.util.Date;
@@ -18,10 +19,10 @@ public interface ModuleEventDao {
 	
 	void saveModuleEvent(ModuleEvent moduleEvent);
 	
-	List<ModuleEvent> getModuleEvents(String eventType, String moduleName, String username, String userUUID, Date startDate,
-	        Date endDate, int page, int size);
+	List<ModuleEvent> getModuleEvents(ModuleEventType eventType, String moduleName, String username, String userUUID,
+	        Date startDate, Date endDate, int page, int size);
 	
-	Long countModuleEvents(String eventType, String moduleName, String username, String userUUID, Date startDate,
+	Long countModuleEvents(ModuleEventType eventType, String moduleName, String username, String userUUID, Date startDate,
 	        Date endDate);
 	
 	ModuleEvent getModuleEventById(Integer moduleEventId);

@@ -29,7 +29,7 @@ import org.openmrs.module.auditlogweb.ReadAuditLog;
 import org.openmrs.module.auditlogweb.api.dao.ModuleEventDao;
 import org.openmrs.module.auditlogweb.api.dao.ReadAuditDAO;
 import org.openmrs.module.auditlogweb.api.impl.AuditLogRecorderImpl;
-import org.openmrs.module.auditlogweb.api.utils.ModuleEventType;
+import org.openmrs.module.ModuleEventType;
 
 import java.util.Arrays;
 import java.util.List;
@@ -110,9 +110,7 @@ public class AuditLogRecorderTest {
 		
 		try (MockedStatic<ModuleEventType> mockedModuleEventType = mockStatic(ModuleEventType.class)) {
 			mockedAuditLogContext.when(AuditLogContext::get).thenReturn(ctx);
-			mockedModuleEventType.when(() -> ModuleEventType.fromName("MODULE_LOAD"))
-			        .thenReturn(ModuleEventType.MODULE_LOAD);
-			auditLogRecorder.logModuleEvent("MODULE_LOAD", "event", true);
+			auditLogRecorder.logModuleEvent(ModuleEventType.MODULE_LOAD, "event", true);
 		}
 		
 		ArgumentCaptor<ModuleEvent> eventCaptor = ArgumentCaptor.forClass(ModuleEvent.class);
@@ -127,7 +125,7 @@ public class AuditLogRecorderTest {
 	}
 	
 	@Test
-	void logModuleEvent_shouldReturnEarlyIfDaemonUser() {
+	void loadModuleEvent_shouldReturnEarlyIfDaemonUser() {
 		
 		mockedAuditLogContext.when(AuditLogContext::get).thenReturn(null);
 		mockedContext.when(Context::isAuthenticated).thenReturn(true);
@@ -137,22 +135,18 @@ public class AuditLogRecorderTest {
 		
 		try (MockedStatic<Daemon> mockedDaemon = mockStatic(Daemon.class)) {
 			mockedDaemon.when(() -> Daemon.isDaemonUser(daemonUser)).thenReturn(true);
-			auditLogRecorder.logModuleEvent("MODULE_LOAD", "event", true);
+			auditLogRecorder.logModuleEvent(ModuleEventType.MODULE_LOAD, "event", true);
 		}
 		
 		verify(moduleEventDao, never()).saveModuleEvent(any(ModuleEvent.class));
 	}
 	
 	@Test
-	void logModuleEvent_shouldFallbackToAnonymousUserIfNoUserContext() {
+	void loadModuleEvent_shouldFallbackToAnonymousUserIfNoUserContext() {
 		mockedAuditLogContext.when(AuditLogContext::get).thenReturn(null);
 		mockedContext.when(Context::isAuthenticated).thenReturn(false);
 		
-		try (MockedStatic<ModuleEventType> mockedModuleEventType = mockStatic(ModuleEventType.class)) {
-			mockedModuleEventType.when(() -> ModuleEventType.fromName("MODULE_LOAD"))
-			        .thenReturn(ModuleEventType.MODULE_LOAD);
-			auditLogRecorder.logModuleEvent("MODULE_LOAD", "event", true);
-		}
+		auditLogRecorder.logModuleEvent(ModuleEventType.MODULE_LOAD, "event", true);
 		
 		ArgumentCaptor<ModuleEvent> eventCaptor = ArgumentCaptor.forClass(ModuleEvent.class);
 		verify(moduleEventDao).saveModuleEvent(eventCaptor.capture());
@@ -163,19 +157,19 @@ public class AuditLogRecorderTest {
 	}
 	
 	@Test
-	void logModule_shouldReturnEarlyIfInvalidModuleName() {
+	void loadModule_shouldReturnEarlyIfInvalidModuleName() {
 		mockedAuditLogContext.when(AuditLogContext::get).thenReturn(null);
 		
-		auditLogRecorder.logModuleEvent("MODULE_LOAD", "", true);
+		auditLogRecorder.logModuleEvent(ModuleEventType.MODULE_LOAD, "", true);
 		
 		verify(moduleEventDao, never()).saveModuleEvent(any(ModuleEvent.class));
 	}
 	
 	@Test
-	void logModule_shouldReturnEarlyIfInvalidModuleType() {
+	void loadModule_shouldReturnEarlyIfInvalidModuleType() {
 		mockedAuditLogContext.when(AuditLogContext::get).thenReturn(null);
 		
-		auditLogRecorder.logModuleEvent("MODULE_FINISH", "event", true);
+		auditLogRecorder.logModuleEvent(null, "event", true);
 		
 		verify(moduleEventDao, never()).saveModuleEvent(any(ModuleEvent.class));
 	}

@@ -9,6 +9,7 @@
  */
 package org.openmrs.module.auditlogweb.api;
 
+import org.openmrs.module.ModuleEventType;
 import org.openmrs.module.auditlogweb.ModuleEvent;
 import org.openmrs.module.auditlogweb.ReadAuditLog;
 import java.util.List;
@@ -19,7 +20,7 @@ public interface AuditLogRecorder {
 	
 	void logReadAudits(List<ReadAuditLog> readAuditLogs);
 	
-	void logModuleEvent(String eventType, String moduleName, boolean isSuccess);
+	void logModuleEvent(ModuleEventType moduleEventType, String moduleName, boolean isSuccess);
 	
 	void logModuleEvent(ModuleEvent moduleEvent);
 }

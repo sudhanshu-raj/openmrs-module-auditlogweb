@@ -28,7 +28,7 @@ import static org.mockito.Mockito.eq;
 import org.mockito.MockitoAnnotations;
 
 import org.openmrs.module.auditlogweb.ModuleEvent;
-import org.openmrs.module.auditlogweb.api.utils.ModuleEventType;
+import org.openmrs.module.ModuleEventType;
 
 import java.util.Collections;
 import java.util.Date;
@@ -188,8 +188,8 @@ public class ModuleEventDaoTest {
 		
 		Date startDate = new Date();
 		Date endDate = new Date();
-		List<ModuleEvent> result = moduleEventDao.getModuleEvents("MODULE_LOAD", "event", "admin", "user-uuid-123",
-		    startDate, endDate, 15, 2);
+		List<ModuleEvent> result = moduleEventDao.getModuleEvents(ModuleEventType.MODULE_LOAD, "event", "admin",
+		    "user-uuid-123", startDate, endDate, 15, 2);
 		
 		assertNotNull(result);
 		assertThat(result, hasSize(1));
@@ -205,8 +205,8 @@ public class ModuleEventDaoTest {
 		when(session.createQuery(anyString(), eq(Long.class))).thenReturn(countQuery);
 		when(countQuery.getSingleResult()).thenReturn(5L);
 		
-		long count = moduleEventDao.countModuleEvents("MODULE_LOAD", "event", "admin", "user-uuid-123", new Date(),
-		    new Date());
+		long count = moduleEventDao.countModuleEvents(ModuleEventType.MODULE_LOAD, "event", "admin", "user-uuid-123",
+		    new Date(), new Date());
 		
 		assertThat(count, is(5L));
 		verify(countQuery).setParameter("eventType", ModuleEventType.MODULE_LOAD);

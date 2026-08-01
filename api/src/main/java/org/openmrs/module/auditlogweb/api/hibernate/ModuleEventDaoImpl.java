@@ -14,7 +14,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.openmrs.module.auditlogweb.ModuleEvent;
 import org.openmrs.module.auditlogweb.api.dao.ModuleEventDao;
-import org.openmrs.module.auditlogweb.api.utils.ModuleEventType;
+import org.openmrs.module.ModuleEventType;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.NoResultException;
@@ -84,28 +84,26 @@ public class ModuleEventDaoImpl implements ModuleEventDao {
 	}
 	
 	@Override
-	public List<ModuleEvent> getModuleEvents(String eventType, String moduleName, String username, String userUUID,
+	public List<ModuleEvent> getModuleEvents(ModuleEventType eventType, String moduleName, String username, String userUUID,
 	        Date startDate, Date endDate, int page, int size) {
 		
 		String hql = buildModuleEventQuery(eventType, moduleName, username, userUUID, startDate, endDate);
-		ModuleEventType moduleEventType = ModuleEventType.fromName(eventType);
 		
 		Query<ModuleEvent> query = sessionFactory.getCurrentSession().createQuery(hql, ModuleEvent.class);
-		bindModuleEventFilters(query, moduleEventType, moduleName, username, userUUID, startDate, endDate);
+		bindModuleEventFilters(query, eventType, moduleName, username, userUUID, startDate, endDate);
 		return query.setFirstResult(page * size).setMaxResults(size).list();
 		
 	}
 	
 	@Override
-	public Long countModuleEvents(String eventType, String moduleName, String username, String userUUID, Date startDate,
-	        Date endDate) {
+	public Long countModuleEvents(ModuleEventType eventType, String moduleName, String username, String userUUID,
+	        Date startDate, Date endDate) {
 		
 		String hql = "select count(e) "
 		        + buildModuleEventQuery(eventType, moduleName, username, userUUID, startDate, endDate);
 		
-		ModuleEventType moduleEventType = ModuleEventType.fromName(eventType);
 		Query<Long> query = sessionFactory.getCurrentSession().createQuery(hql, Long.class);
-		bindModuleEventFilters(query, moduleEventType, moduleName, username, userUUID, startDate, endDate);
+		bindModuleEventFilters(query, eventType, moduleName, username, userUUID, startDate, endDate);
 		
 		try {
 			Long result = query.getSingleResult();
@@ -145,13 +143,11 @@ public class ModuleEventDaoImpl implements ModuleEventDao {
 		}
 	}
 	
-	public String buildModuleEventQuery(String eventType, String moduleName, String username, String userUUID,
+	public String buildModuleEventQuery(ModuleEventType eventType, String moduleName, String username, String userUUID,
 	        Date startDate, Date endDate) {
 		StringBuilder hql = new StringBuilder("from ModuleEvent e where 1=1");
 		
-		ModuleEventType moduleEventType = ModuleEventType.fromName(eventType);
-		
-		if (moduleEventType != null) {
+		if (eventType != null) {
 			hql.append(" and e.eventType = :eventType");
 		}
 		if (moduleName != null) {

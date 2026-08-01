@@ -14,8 +14,7 @@ import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import org.openmrs.module.auditlogweb.api.utils.ModuleEventType;
-
+import org.openmrs.module.ModuleEventType;
 import javax.persistence.Id;
 import javax.persistence.Entity;
 import javax.persistence.Table;

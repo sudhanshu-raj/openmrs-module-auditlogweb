@@ -13,13 +13,13 @@ import lombok.RequiredArgsConstructor;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.context.Daemon;
+import org.openmrs.module.ModuleEventType;
 import org.openmrs.module.auditlogweb.ModuleEvent;
 import org.openmrs.module.auditlogweb.ReadAuditLog;
 import org.openmrs.module.auditlogweb.api.AuditLogContext;
 import org.openmrs.module.auditlogweb.api.AuditLogRecorder;
 import org.openmrs.module.auditlogweb.api.dao.ModuleEventDao;
 import org.openmrs.module.auditlogweb.api.dao.ReadAuditDAO;
-import org.openmrs.module.auditlogweb.api.utils.ModuleEventType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -56,7 +56,7 @@ public class AuditLogRecorderImpl implements AuditLogRecorder {
 	}
 	
 	@Override
-	public void logModuleEvent(String eventType, String moduleName, boolean isSuccess) {
+	public void logModuleEvent(ModuleEventType moduleEventType, String moduleName, boolean isSuccess) {
 		String username = null;
 		String userUUID = null;
 		String ipAddress = null;
@@ -97,15 +97,13 @@ public class AuditLogRecorderImpl implements AuditLogRecorder {
 				username = "anonymous";
 			}
 			
-			ModuleEventType moduleEventType = ModuleEventType.fromName(eventType);
-			
 			if (moduleName == null || moduleName.isEmpty()) {
 				log.warn("Module name can't be null or empty");
 				return;
 			}
 			
-			if (moduleEventType == null || moduleEventType == ModuleEventType.UNKNOWN) {
-				log.warn("Unknown module event type: {}", eventType);
+			if (moduleEventType == null) {
+				log.warn("Module event type can't be null");
 				return;
 			}
 			ModuleEvent moduleEvent = ModuleEvent.builder().eventType(moduleEventType).moduleName(moduleName)

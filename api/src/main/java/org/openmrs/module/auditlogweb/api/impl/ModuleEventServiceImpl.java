@@ -10,17 +10,11 @@
 package org.openmrs.module.auditlogweb.api.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.openmrs.User;
-import org.openmrs.api.context.Context;
-import org.openmrs.api.context.Daemon;
 import org.openmrs.api.impl.BaseOpenmrsService;
+import org.openmrs.module.ModuleEventType;
 import org.openmrs.module.auditlogweb.ModuleEvent;
-import org.openmrs.module.auditlogweb.api.AuditLogContext;
 import org.openmrs.module.auditlogweb.api.ModuleEventService;
 import org.openmrs.module.auditlogweb.api.dao.ModuleEventDao;
-import org.openmrs.module.auditlogweb.api.utils.ModuleEventType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.List;
@@ -33,13 +27,15 @@ public class ModuleEventServiceImpl extends BaseOpenmrsService implements Module
 	@Override
 	public List<ModuleEvent> getModuleEvents(String eventType, String moduleName, String username, String userUUID,
 	        Date startDate, Date endDate, int page, int size) {
-		return moduleEventDao.getModuleEvents(eventType, moduleName, username, userUUID, startDate, endDate, page, size);
+		return moduleEventDao.getModuleEvents(getModuleEventType(eventType), moduleName, username, userUUID, startDate,
+		    endDate, page, size);
 	}
 	
 	@Override
 	public long countModuleEvents(String eventType, String moduleName, String username, String userUUID, Date startDate,
 	        Date endDate) {
-		return moduleEventDao.countModuleEvents(eventType, moduleName, username, userUUID, startDate, endDate);
+		return moduleEventDao.countModuleEvents(getModuleEventType(eventType), moduleName, username, userUUID, startDate,
+		    endDate);
 	}
 	
 	@Override
@@ -55,5 +51,18 @@ public class ModuleEventServiceImpl extends BaseOpenmrsService implements Module
 	@Override
 	public long countRelatedModuleEvents(String sessionId) {
 		return moduleEventDao.countRelatedModuleEvents(sessionId);
+	}
+	
+	private ModuleEventType getModuleEventType(String eventType) {
+		ModuleEventType moduleEventType = null;
+		if (eventType != null && !eventType.isEmpty()) {
+			try {
+				moduleEventType = ModuleEventType.valueOf(eventType.trim().toUpperCase());
+			}
+			catch (IllegalArgumentException e) {
+				throw new IllegalArgumentException("Invalid event type: " + eventType);
+			}
+		}
+		return moduleEventType;
 	}
 }
