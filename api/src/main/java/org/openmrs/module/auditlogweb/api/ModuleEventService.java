@@ -16,10 +16,11 @@ import java.util.List;
 
 public interface ModuleEventService {
 	
-	List<ModuleEvent> getModuleEvents(String eventType, String moduleName, String username, String userUUID, Date startDate,
-	        Date endDate, int page, int size);
+	List<ModuleEvent> getModuleEvents(String eventType, String moduleId, String moduleName, String moduleVersion,
+	        String username, String userUUID, Date startDate, Date endDate, int page, int size);
 	
-	long countModuleEvents(String eventType, String moduleName, String username, String userUUID, Date start, Date end);
+	long countModuleEvents(String eventType, String moduleId, String moduleName, String moduleVersion, String username,
+	        String userUUID, Date start, Date end);
 	
 	ModuleEvent getModuleEventById(Integer moduleEventId);
 	

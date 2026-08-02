@@ -169,7 +169,7 @@ public class ModuleEventDaoTest {
 		when(moduleEventQuery.setMaxResults(10)).thenReturn(moduleEventQuery);
 		when(moduleEventQuery.list()).thenReturn(moduleList);
 		
-		List<ModuleEvent> result = moduleEventDao.getModuleEvents(null, null, null, null, null, null, 0, 10);
+		List<ModuleEvent> result = moduleEventDao.getModuleEvents(null, null, null, null, null, null, null, null, 0, 10);
 		
 		assertNotNull(result);
 		assertThat(result, hasSize(1));
@@ -188,14 +188,17 @@ public class ModuleEventDaoTest {
 		
 		Date startDate = new Date();
 		Date endDate = new Date();
-		List<ModuleEvent> result = moduleEventDao.getModuleEvents(ModuleEventType.MODULE_LOAD, "event", "admin",
-		    "user-uuid-123", startDate, endDate, 15, 2);
+		List<ModuleEvent> result = moduleEventDao.getModuleEvents(ModuleEventType.MODULE_LOAD, "Event1", "event",
+		    "1.0.0-SNAPSHOT", "admin", "user-uuid-123", startDate, endDate, 15, 2);
 		
 		assertNotNull(result);
 		assertThat(result, hasSize(1));
-		assertEquals("event", result.get(0).getModuleName());
 		assertEquals(ModuleEventType.MODULE_LOAD, result.get(0).getEventType());
+		assertEquals("Event1", result.get(0).getModuleId());
+		assertEquals("event", result.get(0).getModuleName());
+		assertEquals("1.0.0-SNAPSHOT", result.get(0).getModuleVersion());
 		assertEquals("admin", result.get(0).getUsername());
+		
 		verify(moduleEventQuery).setParameter("moduleName", "event");
 		verify(moduleEventQuery).setParameter("eventType", ModuleEventType.MODULE_LOAD);
 	}
@@ -205,12 +208,14 @@ public class ModuleEventDaoTest {
 		when(session.createQuery(anyString(), eq(Long.class))).thenReturn(countQuery);
 		when(countQuery.getSingleResult()).thenReturn(5L);
 		
-		long count = moduleEventDao.countModuleEvents(ModuleEventType.MODULE_LOAD, "event", "admin", "user-uuid-123",
-		    new Date(), new Date());
+		long count = moduleEventDao.countModuleEvents(ModuleEventType.MODULE_LOAD, "Event1", "event", "1.0.0-SNAPSHOT",
+		    "admin", "user-uuid-123", new Date(), new Date());
 		
 		assertThat(count, is(5L));
 		verify(countQuery).setParameter("eventType", ModuleEventType.MODULE_LOAD);
+		verify(countQuery).setParameter("moduleId", "Event1");
 		verify(countQuery).setParameter("moduleName", "event");
+		verify(countQuery).setParameter("moduleVersion", "1.0.0-SNAPSHOT");
 		verify(countQuery).setParameter("username", "%admin%");
 		verify(countQuery).setParameter("userUUID", "user-uuid-123");
 	}
@@ -267,9 +272,9 @@ public class ModuleEventDaoTest {
 	}
 	
 	private ModuleEvent buildModuleEvent() {
-		return ModuleEvent.builder().id(1).moduleName("event").eventType(ModuleEventType.MODULE_LOAD).eventSuccess(true)
-		        .username("admin").userUUID("user-uuid-123").eventTime(new Date()).ipAddress("192.169.0.1")
-		        .userAgent("user-agent-abc").sessionId("session-abc").build();
+		return ModuleEvent.builder().id(1).eventType(ModuleEventType.MODULE_LOAD).moduleId("Event1").moduleName("event")
+		        .moduleVersion("1.0.0-SNAPSHOT").eventSuccess(true).username("admin").userUUID("user-uuid-123")
+		        .eventTime(new Date()).ipAddress("192.169.0.1").userAgent("user-agent-abc").sessionId("session-abc").build();
 	}
 	
 }

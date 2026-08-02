@@ -56,7 +56,8 @@ public class AuditLogRecorderImpl implements AuditLogRecorder {
 	}
 	
 	@Override
-	public void logModuleEvent(ModuleEventType moduleEventType, String moduleName, boolean isSuccess) {
+	public void logModuleEvent(ModuleEventType moduleEventType, String moduleId, String moduleName, String moduleVersion,
+	        boolean isSuccess) {
 		String username = null;
 		String userUUID = null;
 		String ipAddress = null;
@@ -97,8 +98,8 @@ public class AuditLogRecorderImpl implements AuditLogRecorder {
 				username = "anonymous";
 			}
 			
-			if (moduleName == null || moduleName.isEmpty()) {
-				log.warn("Module name can't be null or empty");
+			if (moduleId == null || moduleId.isEmpty() || moduleName == null || moduleName.isEmpty()) {
+				log.warn("Module ID or name can't be null or empty");
 				return;
 			}
 			
@@ -106,9 +107,10 @@ public class AuditLogRecorderImpl implements AuditLogRecorder {
 				log.warn("Module event type can't be null");
 				return;
 			}
-			ModuleEvent moduleEvent = ModuleEvent.builder().eventType(moduleEventType).moduleName(moduleName)
-			        .eventSuccess(isSuccess).username(username).userUUID(userUUID).eventTime(new Date()).ipAddress(ipAddress)
-			        .userAgent(userAgent).sessionId(sessionId).build();
+			ModuleEvent moduleEvent = ModuleEvent.builder().eventType(moduleEventType).moduleId(moduleId)
+			        .moduleName(moduleName).moduleVersion(moduleVersion).eventSuccess(isSuccess).username(username)
+			        .userUUID(userUUID).eventTime(new Date()).ipAddress(ipAddress).userAgent(userAgent).sessionId(sessionId)
+			        .build();
 			logModuleEvent(moduleEvent);
 		}
 		catch (Exception e) {

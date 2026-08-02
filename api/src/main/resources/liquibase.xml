@@ -158,9 +158,13 @@
             <column name="event_type" type="VARCHAR(20)">
                 <constraints nullable="false"/>
             </column>
+            <column name="module_id" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
             <column name="module_name" type="VARCHAR(50)">
                 <constraints nullable="false"/>
             </column>
+            <column name="module_version" type="VARCHAR(50)" />
             <column name="event_success" type="BOOLEAN">
                 <constraints nullable="false"/>
             </column>

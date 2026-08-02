@@ -41,8 +41,14 @@ public class ModuleEvent {
 	@Enumerated(EnumType.STRING)
 	private ModuleEventType eventType;
 	
+	@Column(name = "module_id", nullable = false)
+	private String moduleId;
+	
 	@Column(name = "module_name", nullable = false)
 	private String moduleName;
+	
+	@Column(name = "module_version")
+	private String moduleVersion;
 	
 	@Column(name = "event_success", nullable = false)
 	private boolean eventSuccess;

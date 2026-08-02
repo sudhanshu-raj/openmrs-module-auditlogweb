@@ -34,8 +34,15 @@ import org.openmrs.module.ModuleEventType;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.any;
 
 public class AuditLogRecorderTest {
 	
@@ -110,7 +117,7 @@ public class AuditLogRecorderTest {
 		
 		try (MockedStatic<ModuleEventType> mockedModuleEventType = mockStatic(ModuleEventType.class)) {
 			mockedAuditLogContext.when(AuditLogContext::get).thenReturn(ctx);
-			auditLogRecorder.logModuleEvent(ModuleEventType.MODULE_LOAD, "event", true);
+			auditLogRecorder.logModuleEvent(ModuleEventType.MODULE_LOAD, "Event1", "event", "1.0.0-Snapshot", true);
 		}
 		
 		ArgumentCaptor<ModuleEvent> eventCaptor = ArgumentCaptor.forClass(ModuleEvent.class);
@@ -120,7 +127,9 @@ public class AuditLogRecorderTest {
 		assertEquals("admin", captured.getUsername());
 		assertEquals("user-uuid-123", captured.getUserUUID());
 		assertEquals(500, captured.getUserAgent().length());
+		assertEquals("Event1", captured.getModuleId());
 		assertEquals("event", captured.getModuleName());
+		assertEquals("1.0.0-Snapshot", captured.getModuleVersion());
 		assertTrue(captured.isEventSuccess());
 	}
 	
@@ -135,7 +144,7 @@ public class AuditLogRecorderTest {
 		
 		try (MockedStatic<Daemon> mockedDaemon = mockStatic(Daemon.class)) {
 			mockedDaemon.when(() -> Daemon.isDaemonUser(daemonUser)).thenReturn(true);
-			auditLogRecorder.logModuleEvent(ModuleEventType.MODULE_LOAD, "event", true);
+			auditLogRecorder.logModuleEvent(ModuleEventType.MODULE_LOAD, "Event1", "event", "1.0.0-Snapshot", true);
 		}
 		
 		verify(moduleEventDao, never()).saveModuleEvent(any(ModuleEvent.class));
@@ -146,7 +155,7 @@ public class AuditLogRecorderTest {
 		mockedAuditLogContext.when(AuditLogContext::get).thenReturn(null);
 		mockedContext.when(Context::isAuthenticated).thenReturn(false);
 		
-		auditLogRecorder.logModuleEvent(ModuleEventType.MODULE_LOAD, "event", true);
+		auditLogRecorder.logModuleEvent(ModuleEventType.MODULE_LOAD, "Event1", "event", "1.0.0-Snapshot", true);
 		
 		ArgumentCaptor<ModuleEvent> eventCaptor = ArgumentCaptor.forClass(ModuleEvent.class);
 		verify(moduleEventDao).saveModuleEvent(eventCaptor.capture());
@@ -160,7 +169,7 @@ public class AuditLogRecorderTest {
 	void loadModule_shouldReturnEarlyIfInvalidModuleName() {
 		mockedAuditLogContext.when(AuditLogContext::get).thenReturn(null);
 		
-		auditLogRecorder.logModuleEvent(ModuleEventType.MODULE_LOAD, "", true);
+		auditLogRecorder.logModuleEvent(ModuleEventType.MODULE_LOAD, "Event1", "", "1.0.0-Snapshot", true);
 		
 		verify(moduleEventDao, never()).saveModuleEvent(any(ModuleEvent.class));
 	}
@@ -169,7 +178,7 @@ public class AuditLogRecorderTest {
 	void loadModule_shouldReturnEarlyIfInvalidModuleType() {
 		mockedAuditLogContext.when(AuditLogContext::get).thenReturn(null);
 		
-		auditLogRecorder.logModuleEvent(null, "event", true);
+		auditLogRecorder.logModuleEvent(null, "Event1", "event", "1.0.0-Snapshot", true);
 		
 		verify(moduleEventDao, never()).saveModuleEvent(any(ModuleEvent.class));
 	}

@@ -57,9 +57,10 @@ public class ModuleEventController {
 		
 		try {
 			
-			List<ModuleEvent> events = moduleEventService.getModuleEvents(eventType, moduleName, username, userUUID, start,
-			    end, page, size);
-			long totalCount = moduleEventService.countModuleEvents(eventType, moduleName, username, userUUID, start, end);
+			List<ModuleEvent> events = moduleEventService.getModuleEvents(eventType, null, moduleName, null, username,
+			    userUUID, start, end, page, size);
+			long totalCount = moduleEventService.countModuleEvents(eventType, null, moduleName, null, username, userUUID,
+			    start, end);
 			int totalPages = UtilClass.computeTotalPages(totalCount, size);
 			
 			model.addAttribute("events", events);

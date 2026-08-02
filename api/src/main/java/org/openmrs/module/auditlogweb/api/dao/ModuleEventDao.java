@@ -19,11 +19,11 @@ public interface ModuleEventDao {
 	
 	void saveModuleEvent(ModuleEvent moduleEvent);
 	
-	List<ModuleEvent> getModuleEvents(ModuleEventType eventType, String moduleName, String username, String userUUID,
-	        Date startDate, Date endDate, int page, int size);
+	List<ModuleEvent> getModuleEvents(ModuleEventType eventType, String moduleId, String moduleName, String moduleVersion,
+	        String username, String userUUID, Date startDate, Date endDate, int page, int size);
 	
-	Long countModuleEvents(ModuleEventType eventType, String moduleName, String username, String userUUID, Date startDate,
-	        Date endDate);
+	Long countModuleEvents(ModuleEventType eventType, String moduleId, String moduleName, String moduleVersion,
+	        String username, String userUUID, Date startDate, Date endDate);
 	
 	ModuleEvent getModuleEventById(Integer moduleEventId);
 	

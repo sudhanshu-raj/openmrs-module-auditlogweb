@@ -54,6 +54,12 @@
                     </td>
                 </tr>
                 <tr>
+                    <td class="label-cell">Module Version</td>
+                    <td>
+                        <c:out value="${event.moduleVersion}"/>
+                    </td>
+                </tr>
+                <tr>
                     <td class="label-cell">Success</td>
                     <td>
                         <c:choose>
@@ -130,6 +136,7 @@
                     <tr>
                         <th>Time</th>
                         <th>Type</th>
+                        <th>Module</th>
                         <th>User</th>
                         <th>Details</th>
                     </tr>
@@ -146,6 +153,17 @@
                                     <c:otherwise>
                                         <span class="badge badge-failure"><c:out value="${relEvent.eventType}"/></span>
                                     </c:otherwise>
+                                </c:choose>
+                            </td>
+                            <td>
+                                <c:choose>
+                                    <c:when test="${not empty relEvent.moduleName}">
+                                        <c:out value="${relEvent.moduleName}"/>
+                                        <c:if test="${not empty relEvent.moduleVersion}">
+                                            (<c:out value="${relEvent.moduleVersion}" />)
+                                        </c:if>
+                                    </c:when>
+                                    <c:otherwise><span class="null-value">-</span></c:otherwise>
                                 </c:choose>
                             </td>
                             <td>

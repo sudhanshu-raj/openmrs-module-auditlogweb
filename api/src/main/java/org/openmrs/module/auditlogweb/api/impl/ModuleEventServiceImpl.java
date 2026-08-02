@@ -25,17 +25,17 @@ public class ModuleEventServiceImpl extends BaseOpenmrsService implements Module
 	private final ModuleEventDao moduleEventDao;
 	
 	@Override
-	public List<ModuleEvent> getModuleEvents(String eventType, String moduleName, String username, String userUUID,
-	        Date startDate, Date endDate, int page, int size) {
-		return moduleEventDao.getModuleEvents(getModuleEventType(eventType), moduleName, username, userUUID, startDate,
-		    endDate, page, size);
+	public List<ModuleEvent> getModuleEvents(String eventType, String moduleId, String moduleName, String moduleVersion,
+	        String username, String userUUID, Date startDate, Date endDate, int page, int size) {
+		return moduleEventDao.getModuleEvents(getModuleEventType(eventType), moduleId, moduleName, moduleVersion, username,
+		    userUUID, startDate, endDate, page, size);
 	}
 	
 	@Override
-	public long countModuleEvents(String eventType, String moduleName, String username, String userUUID, Date startDate,
-	        Date endDate) {
-		return moduleEventDao.countModuleEvents(getModuleEventType(eventType), moduleName, username, userUUID, startDate,
-		    endDate);
+	public long countModuleEvents(String eventType, String moduleId, String moduleName, String moduleVersion,
+	        String username, String userUUID, Date startDate, Date endDate) {
+		return moduleEventDao.countModuleEvents(getModuleEventType(eventType), moduleId, moduleName, moduleVersion, username,
+		    userUUID, startDate, endDate);
 	}
 	
 	@Override

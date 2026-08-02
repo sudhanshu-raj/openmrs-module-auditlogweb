@@ -20,7 +20,8 @@ public interface AuditLogRecorder {
 	
 	void logReadAudits(List<ReadAuditLog> readAuditLogs);
 	
-	void logModuleEvent(ModuleEventType moduleEventType, String moduleName, boolean isSuccess);
+	void logModuleEvent(ModuleEventType moduleEventType, String moduleId, String moduleName, String moduleVersion,
+	        boolean isSuccess);
 	
 	void logModuleEvent(ModuleEvent moduleEvent);
 }

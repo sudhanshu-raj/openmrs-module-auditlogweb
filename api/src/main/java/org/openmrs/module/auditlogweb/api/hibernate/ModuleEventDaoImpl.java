@@ -15,12 +15,14 @@ import org.hibernate.query.Query;
 import org.openmrs.module.auditlogweb.ModuleEvent;
 import org.openmrs.module.auditlogweb.api.dao.ModuleEventDao;
 import org.openmrs.module.ModuleEventType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.NoResultException;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Logger;
+
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
@@ -28,7 +30,7 @@ import org.hibernate.Transaction;
 @RequiredArgsConstructor
 public class ModuleEventDaoImpl implements ModuleEventDao {
 	
-	private final Logger log = Logger.getLogger(ModuleEventDaoImpl.class.getName());
+	private final Logger log = LoggerFactory.getLogger(ModuleEvent.class);
 	
 	private final SessionFactory sessionFactory;
 	
@@ -57,7 +59,7 @@ public class ModuleEventDaoImpl implements ModuleEventDao {
 		}
 		
 		if (isNewSession) {
-			log.info("No active transaction or session, opening a new session to save ModuleEvent");
+			log.debug("No active transaction or session, opening a new session to save ModuleEvent");
 			try {
 				session = sessionFactory.openSession();
 				tx = session.beginTransaction();
@@ -70,7 +72,7 @@ public class ModuleEventDaoImpl implements ModuleEventDao {
 						tx.rollback();
 					}
 					catch (Exception rollbackEx) {
-						log.warning("Rollback failed : " + rollbackEx.getMessage());
+						log.warn("Rollback failed : " + rollbackEx.getMessage());
 					}
 				}
 				throw e;
@@ -84,26 +86,29 @@ public class ModuleEventDaoImpl implements ModuleEventDao {
 	}
 	
 	@Override
-	public List<ModuleEvent> getModuleEvents(ModuleEventType eventType, String moduleName, String username, String userUUID,
-	        Date startDate, Date endDate, int page, int size) {
+	public List<ModuleEvent> getModuleEvents(ModuleEventType eventType, String moduleId, String moduleName,
+	        String moduleVersion, String username, String userUUID, Date startDate, Date endDate, int page, int size) {
 		
-		String hql = buildModuleEventQuery(eventType, moduleName, username, userUUID, startDate, endDate);
+		String hql = buildModuleEventQuery(eventType, moduleId, moduleName, moduleVersion, username, userUUID, startDate,
+		    endDate);
 		
 		Query<ModuleEvent> query = sessionFactory.getCurrentSession().createQuery(hql, ModuleEvent.class);
-		bindModuleEventFilters(query, eventType, moduleName, username, userUUID, startDate, endDate);
+		bindModuleEventFilters(query, eventType, moduleId, moduleName, moduleVersion, username, userUUID, startDate,
+		    endDate);
 		return query.setFirstResult(page * size).setMaxResults(size).list();
 		
 	}
 	
 	@Override
-	public Long countModuleEvents(ModuleEventType eventType, String moduleName, String username, String userUUID,
-	        Date startDate, Date endDate) {
+	public Long countModuleEvents(ModuleEventType eventType, String moduleId, String moduleName, String moduleVersion,
+	        String username, String userUUID, Date startDate, Date endDate) {
 		
-		String hql = "select count(e) "
-		        + buildModuleEventQuery(eventType, moduleName, username, userUUID, startDate, endDate);
+		String hql = "select count(e) " + buildModuleEventQuery(eventType, moduleId, moduleName, moduleVersion, username,
+		    userUUID, startDate, endDate);
 		
 		Query<Long> query = sessionFactory.getCurrentSession().createQuery(hql, Long.class);
-		bindModuleEventFilters(query, eventType, moduleName, username, userUUID, startDate, endDate);
+		bindModuleEventFilters(query, eventType, moduleId, moduleName, moduleVersion, username, userUUID, startDate,
+		    endDate);
 		
 		try {
 			Long result = query.getSingleResult();
@@ -143,15 +148,21 @@ public class ModuleEventDaoImpl implements ModuleEventDao {
 		}
 	}
 	
-	public String buildModuleEventQuery(ModuleEventType eventType, String moduleName, String username, String userUUID,
-	        Date startDate, Date endDate) {
+	public String buildModuleEventQuery(ModuleEventType eventType, String moduleId, String moduleName, String moduleVersion,
+	        String username, String userUUID, Date startDate, Date endDate) {
 		StringBuilder hql = new StringBuilder("from ModuleEvent e where 1=1");
 		
 		if (eventType != null) {
 			hql.append(" and e.eventType = :eventType");
 		}
+		if (moduleId != null && !moduleId.isEmpty()) {
+			hql.append(" and e.moduleId = :moduleId");
+		}
 		if (moduleName != null) {
 			hql.append(" and e.moduleName = :moduleName");
+		}
+		if (moduleVersion != null && !moduleVersion.isEmpty()) {
+			hql.append(" and e.moduleVersion = :moduleVersion");
 		}
 		if (username != null && !username.trim().isEmpty()) {
 			hql.append(" and lower(e.username) like :username");
@@ -170,13 +181,19 @@ public class ModuleEventDaoImpl implements ModuleEventDao {
 		return hql.toString();
 	}
 	
-	private void bindModuleEventFilters(Query<?> query, ModuleEventType eventType, String moduleName, String username,
-	        String userUUID, Date startDate, Date endDate) {
+	private void bindModuleEventFilters(Query<?> query, ModuleEventType eventType, String moduleId, String moduleName,
+	        String moduleVersion, String username, String userUUID, Date startDate, Date endDate) {
 		if (eventType != null) {
 			query.setParameter("eventType", eventType);
 		}
+		if (moduleId != null && !moduleId.isEmpty()) {
+			query.setParameter("moduleId", moduleId);
+		}
 		if (moduleName != null) {
 			query.setParameter("moduleName", moduleName);
+		}
+		if (moduleVersion != null && !moduleVersion.isEmpty()) {
+			query.setParameter("moduleVersion", moduleVersion);
 		}
 		if (username != null && !username.trim().isEmpty()) {
 			query.setParameter("username", "%" + username.trim().toLowerCase() + "%");
