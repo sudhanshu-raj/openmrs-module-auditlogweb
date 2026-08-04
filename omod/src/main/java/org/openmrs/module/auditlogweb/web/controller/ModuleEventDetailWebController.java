@@ -31,9 +31,9 @@ import static org.openmrs.module.auditlogweb.AuditlogwebConstants.MODULE_PATH;
 @Controller("auditlogweb.ModuleEventDetailController")
 @RequestMapping(value = MODULE_PATH + "/viewModuleEvent.form")
 @RequiredArgsConstructor
-public class ModuleEventDetailController {
+public class ModuleEventDetailWebController {
 	
-	private static final Logger log = LoggerFactory.getLogger(ModuleEventDetailController.class);
+	private static final Logger log = LoggerFactory.getLogger(ModuleEventDetailWebController.class);
 	
 	private final ModuleEventService moduleEventService;
 	
