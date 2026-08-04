@@ -15,7 +15,9 @@ import org.openmrs.module.ModuleEventType;
 import org.openmrs.module.auditlogweb.ModuleEvent;
 import org.openmrs.module.auditlogweb.api.ModuleEventService;
 import org.openmrs.module.auditlogweb.api.dao.ModuleEventDao;
+import org.openmrs.module.auditlogweb.api.dto.ModuleEventDTO;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -51,6 +53,22 @@ public class ModuleEventServiceImpl extends BaseOpenmrsService implements Module
 	@Override
 	public long countRelatedModuleEvents(String sessionId) {
 		return moduleEventDao.countRelatedModuleEvents(sessionId);
+	}
+	
+	@Override
+	public List<ModuleEventDTO> mapToModuleEventDTO(List<ModuleEvent> moduleEvents) {
+		List<ModuleEventDTO> moduleEventDTOs = new ArrayList<ModuleEventDTO>();
+		
+		for (ModuleEvent moduleEvent : moduleEvents) {
+			ModuleEventDTO dto = ModuleEventDTO.builder().id(moduleEvent.getId()).eventType(moduleEvent.getEventType())
+			        .moduleId(moduleEvent.getModuleId()).moduleName(moduleEvent.getModuleName())
+			        .moduleVersion(moduleEvent.getModuleVersion()).eventSuccess(moduleEvent.isEventSuccess())
+			        .username(moduleEvent.getUsername()).userUUID(moduleEvent.getUserUUID())
+			        .eventTime(moduleEvent.getEventTime()).ipAddress(moduleEvent.getIpAddress())
+			        .userAgent(moduleEvent.getUserAgent()).sessionId(moduleEvent.getSessionId()).build();
+			moduleEventDTOs.add(dto);
+		}
+		return moduleEventDTOs;
 	}
 	
 	private ModuleEventType getModuleEventType(String eventType) {

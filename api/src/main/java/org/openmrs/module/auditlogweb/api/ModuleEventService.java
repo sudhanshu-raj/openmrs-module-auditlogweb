@@ -10,6 +10,7 @@
 package org.openmrs.module.auditlogweb.api;
 
 import org.openmrs.module.auditlogweb.ModuleEvent;
+import org.openmrs.module.auditlogweb.api.dto.ModuleEventDTO;
 
 import java.util.Date;
 import java.util.List;
@@ -27,4 +28,6 @@ public interface ModuleEventService {
 	List<ModuleEvent> getRelatedModuleEvents(String sessionId, int page, int size);
 	
 	long countRelatedModuleEvents(String sessionId);
+	
+	List<ModuleEventDTO> mapToModuleEventDTO(List<ModuleEvent> moduleEvents);
 }
