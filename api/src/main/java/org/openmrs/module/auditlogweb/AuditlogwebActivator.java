@@ -21,29 +21,34 @@ import org.openmrs.module.auditlogweb.api.AuditBackfillService;
  * This class contains the logic that is run every time this module is either started or shutdown
  */
 public class AuditlogwebActivator extends BaseModuleActivator {
-
+	
 	private Log log = LogFactory.getLog(this.getClass());
-
+	
 	@Getter
-	@Setter
 	private static volatile boolean appShuttingDown = false;
-
+	
 	/**
-	 * It's a JVM shutdown hook that fires when the server process exits. Registered on module start so that
-	 * {@code appShuttingDown} returns {@code true} so that we can know when the server is getting shutdown.
+	 * It's a JVM shutdown hook that fires when the server process exits. Registered on module start so
+	 * that {@code appShuttingDown} returns {@code true} so that we can know when the server is getting
+	 * shutdown.
 	 */
 	private Thread shutdownHook;
-
+	
 	@Override
 	public void started() {
 		log.info("Started Auditlogweb");
-
-		// Register a JVM shutdown hook so we know when the whole server is stopping.
-		shutdownHook = new Thread(() -> {
-			AuditlogwebActivator.setAppShuttingDown(true);
-		}, "auditlogweb-shutdown-hook");
-		Runtime.getRuntime().addShutdownHook(shutdownHook);
-
+		
+		try {
+			// Register a JVM shutdown hook so we know when the whole server is stopping.
+			shutdownHook = new Thread(() -> {
+				appShuttingDown = true;
+			}, "auditlogweb-shutdown-hook");
+			Runtime.getRuntime().addShutdownHook(shutdownHook);
+		}
+		catch (Exception e) {
+			log.error("Failed to start register the shutdownHook", e);
+		}
+		
 		try {
 			Context.getRegisteredComponent("auditlogweb.auditBackfillService", AuditBackfillService.class)
 			        .backfillExistingDataIfEnabled();
@@ -52,7 +57,7 @@ public class AuditlogwebActivator extends BaseModuleActivator {
 			log.error("One-time audit backfill of existing data failed", e);
 		}
 	}
-
+	
 	@Override
 	public void stopped() {
 		log.info("Stopped Auditlogweb");

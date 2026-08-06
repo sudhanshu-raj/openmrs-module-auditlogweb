@@ -23,11 +23,11 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class ModuleEventListener {
-
+	
 	private final Logger log = LoggerFactory.getLogger(ModuleEventListener.class);
-
+	
 	private final AuditLogRecorder auditLogRecorder;
-
+	
 	/**
 	 * We're listening to the module event like MODULE_START, MODULE_STOP, MODULE_LOAD, MODULE_UNLOAD.
 	 * which got published from the core.We do not need the module action during the startup and
@@ -40,17 +40,17 @@ public class ModuleEventListener {
 			if (Daemon.isDaemonThread()) {
 				return;
 			}
-
+			
 			if (AuditlogwebActivator.isAppShuttingDown()) {
 				return;
 			}
-
+			
 			ModuleEventType moduleEventType = moduleActionEvent.getActionType();
 			String moduleId = moduleActionEvent.getModuleId();
 			String moduleName = moduleActionEvent.getModuleName();
 			String moduleVersion = moduleActionEvent.getModuleVersion();
 			boolean isSuccess = moduleActionEvent.isSuccess();
-
+			
 			auditLogRecorder.logModuleEvent(moduleEventType, moduleId, moduleName, moduleVersion, isSuccess);
 		}
 		catch (Exception e) {
