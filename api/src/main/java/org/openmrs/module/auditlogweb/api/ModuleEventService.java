@@ -9,24 +9,32 @@
  */
 package org.openmrs.module.auditlogweb.api;
 
+import org.openmrs.annotation.Authorized;
+import org.openmrs.api.OpenmrsService;
 import org.openmrs.module.auditlogweb.ModuleEvent;
 import org.openmrs.module.auditlogweb.api.dto.ModuleEventDTO;
+import org.openmrs.module.auditlogweb.api.utils.AuditLogConstants;
 
 import java.util.Date;
 import java.util.List;
 
-public interface ModuleEventService {
+public interface ModuleEventService extends OpenmrsService {
 	
+	@Authorized(AuditLogConstants.VIEW_ADMIN_AUDIT_LOGS)
 	List<ModuleEvent> getModuleEvents(String eventType, String moduleId, String moduleName, String moduleVersion,
 	        String username, String userUUID, Date startDate, Date endDate, int page, int size);
 	
+	@Authorized(AuditLogConstants.VIEW_ADMIN_AUDIT_LOGS)
 	long countModuleEvents(String eventType, String moduleId, String moduleName, String moduleVersion, String username,
 	        String userUUID, Date start, Date end);
 	
+	@Authorized(AuditLogConstants.VIEW_ADMIN_AUDIT_LOGS)
 	ModuleEvent getModuleEventById(Integer moduleEventId);
 	
+	@Authorized(AuditLogConstants.VIEW_ADMIN_AUDIT_LOGS)
 	List<ModuleEvent> getRelatedModuleEvents(String sessionId, int page, int size);
 	
+	@Authorized(AuditLogConstants.VIEW_ADMIN_AUDIT_LOGS)
 	long countRelatedModuleEvents(String sessionId);
 	
 	List<ModuleEventDTO> mapToModuleEventDTO(List<ModuleEvent> moduleEvents);

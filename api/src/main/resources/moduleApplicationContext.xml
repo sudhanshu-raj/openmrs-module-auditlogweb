@@ -101,7 +101,7 @@
                 <value>org.openmrs.module.auditlogweb.api.ReadAuditService</value>
                 <ref bean="auditlogweb.ReadAuditService"/>
                 <value>org.openmrs.module.auditlogweb.api.ModuleEventService</value>
-                <ref bean = "auditlogweb.ModuleEventService" />
+                <ref bean="auditlogweb.ModuleEventService"/>
             </list>
         </property>
     </bean>
