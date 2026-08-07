@@ -158,9 +158,7 @@
             <column name="event_type" type="VARCHAR(20)">
                 <constraints nullable="false"/>
             </column>
-            <column name="module_id" type="VARCHAR(50)">
-                <constraints nullable="false"/>
-            </column>
+            <column name="module_id" type="VARCHAR(50)" />
             <column name="module_name" type="VARCHAR(50)">
                 <constraints nullable="false"/>
             </column>
@@ -168,6 +166,7 @@
             <column name="event_success" type="BOOLEAN">
                 <constraints nullable="false"/>
             </column>
+            <column name = "failure_reason" type="VARCHAR(500)" />
             <column name="username" type="VARCHAR(50)" />
             <column name="user_uuid" type="VARCHAR(38)" />
             <column name="event_time" type="DATETIME">

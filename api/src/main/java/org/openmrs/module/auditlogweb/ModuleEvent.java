@@ -41,7 +41,7 @@ public class ModuleEvent {
 	@Enumerated(EnumType.STRING)
 	private ModuleEventType eventType;
 	
-	@Column(name = "module_id", nullable = false)
+	@Column(name = "module_id")
 	private String moduleId;
 	
 	@Column(name = "module_name", nullable = false)
@@ -52,6 +52,9 @@ public class ModuleEvent {
 	
 	@Column(name = "event_success", nullable = false)
 	private boolean eventSuccess;
+	
+	@Column(name = "failure_reason")
+	private String failureReason;
 	
 	@Column(name = "username", length = 50)
 	private String username;

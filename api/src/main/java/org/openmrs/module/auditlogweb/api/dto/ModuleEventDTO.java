@@ -31,6 +31,8 @@ public class ModuleEventDTO {
 	
 	private boolean eventSuccess;
 	
+	private String failureReason;
+	
 	private String username;
 	
 	private String userUUID;

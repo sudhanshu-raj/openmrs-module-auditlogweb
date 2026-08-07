@@ -73,6 +73,15 @@
                     </td>
                 </tr>
                 <tr>
+                    <td class="label-cell">Failure Reason</td>
+                    <td>
+                        <c:choose>
+                            <c:when test="${not empty event.failureReason}"><c:out value="${event.failureReason}"/></c:when>
+                            <c:otherwise><span class="null-value">-</span></c:otherwise>
+                        </c:choose>
+                    </td>
+                </tr>
+                <tr>
                     <td class="label-cell">Username</td>
                     <td>
                         <c:choose>

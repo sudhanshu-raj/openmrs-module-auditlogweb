@@ -57,7 +57,7 @@ public class ModuleEventServiceImpl extends BaseOpenmrsService implements Module
 	
 	@Override
 	public List<ModuleEventDTO> mapToModuleEventDTO(List<ModuleEvent> moduleEvents) {
-		List<ModuleEventDTO> moduleEventDTOs = new ArrayList<ModuleEventDTO>();
+		List<ModuleEventDTO> moduleEventDTOs = new ArrayList<>();
 		
 		for (ModuleEvent moduleEvent : moduleEvents) {
 			ModuleEventDTO dto = ModuleEventDTO.builder().id(moduleEvent.getId()).eventType(moduleEvent.getEventType())
@@ -65,7 +65,8 @@ public class ModuleEventServiceImpl extends BaseOpenmrsService implements Module
 			        .moduleVersion(moduleEvent.getModuleVersion()).eventSuccess(moduleEvent.isEventSuccess())
 			        .username(moduleEvent.getUsername()).userUUID(moduleEvent.getUserUUID())
 			        .eventTime(moduleEvent.getEventTime()).ipAddress(moduleEvent.getIpAddress())
-			        .userAgent(moduleEvent.getUserAgent()).sessionId(moduleEvent.getSessionId()).build();
+			        .userAgent(moduleEvent.getUserAgent()).sessionId(moduleEvent.getSessionId())
+			        .failureReason(moduleEvent.getFailureReason()).build();
 			moduleEventDTOs.add(dto);
 		}
 		return moduleEventDTOs;

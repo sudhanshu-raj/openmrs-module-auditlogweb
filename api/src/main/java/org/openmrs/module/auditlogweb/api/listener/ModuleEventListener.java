@@ -50,8 +50,9 @@ public class ModuleEventListener {
 			String moduleName = moduleActionEvent.getModuleName();
 			String moduleVersion = moduleActionEvent.getModuleVersion();
 			boolean isSuccess = moduleActionEvent.isSuccess();
+			String failureReason = moduleActionEvent.getFailureReason();
 			
-			auditLogRecorder.logModuleEvent(moduleEventType, moduleId, moduleName, moduleVersion, isSuccess);
+			auditLogRecorder.logModuleEvent(moduleEventType, moduleId, moduleName, moduleVersion, isSuccess, failureReason);
 		}
 		catch (Exception e) {
 			log.error("Error occur while listening to module events", e);

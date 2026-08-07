@@ -21,7 +21,7 @@ public interface AuditLogRecorder {
 	void logReadAudits(List<ReadAuditLog> readAuditLogs);
 	
 	void logModuleEvent(ModuleEventType moduleEventType, String moduleId, String moduleName, String moduleVersion,
-	        boolean isSuccess);
+	        boolean isSuccess, String failureReason);
 	
 	void logModuleEvent(ModuleEvent moduleEvent);
 }

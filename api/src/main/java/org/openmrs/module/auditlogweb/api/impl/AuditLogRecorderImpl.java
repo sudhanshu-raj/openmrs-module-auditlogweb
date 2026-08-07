@@ -57,7 +57,7 @@ public class AuditLogRecorderImpl implements AuditLogRecorder {
 	
 	@Override
 	public void logModuleEvent(ModuleEventType moduleEventType, String moduleId, String moduleName, String moduleVersion,
-	        boolean isSuccess) {
+	        boolean isSuccess, String failureReason) {
 		String username = null;
 		String userUUID = null;
 		String ipAddress = null;
@@ -107,10 +107,15 @@ public class AuditLogRecorderImpl implements AuditLogRecorder {
 				log.warn("Module event type can't be null");
 				return;
 			}
+			
+			if (failureReason != null && failureReason.length() > 500) {
+				failureReason = failureReason.substring(0, 500);
+			}
+			
 			ModuleEvent moduleEvent = ModuleEvent.builder().eventType(moduleEventType).moduleId(moduleId)
 			        .moduleName(moduleName).moduleVersion(moduleVersion).eventSuccess(isSuccess).username(username)
 			        .userUUID(userUUID).eventTime(new Date()).ipAddress(ipAddress).userAgent(userAgent).sessionId(sessionId)
-			        .build();
+			        .failureReason(failureReason).build();
 			logModuleEvent(moduleEvent);
 		}
 		catch (Exception e) {

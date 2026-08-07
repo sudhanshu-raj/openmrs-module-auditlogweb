@@ -48,7 +48,8 @@ class ModuleEventListenerTest {
 		
 		moduleEventListener.listenModuleAction(mockEvent);
 		
-		verify(auditLogRecorder).logModuleEvent(ModuleEventType.MODULE_LOAD, "Event1", "Event 1", "1.0.0-Snapshot", true);
+		verify(auditLogRecorder).logModuleEvent(ModuleEventType.MODULE_LOAD, "Event1", "Event 1", "1.0.0-Snapshot", true,
+		    null);
 	}
 	
 	@Test
@@ -59,7 +60,8 @@ class ModuleEventListenerTest {
 			ModuleActionEvent mockEvent = buildModuleActionEvent();
 			moduleEventListener.listenModuleAction(mockEvent);
 			
-			verify(auditLogRecorder, never()).logModuleEvent(any(), anyString(), anyString(), anyString(), anyBoolean());
+			verify(auditLogRecorder, never()).logModuleEvent(any(), anyString(), anyString(), anyString(), anyBoolean(),
+			    any());
 		}
 	}
 	
@@ -71,7 +73,8 @@ class ModuleEventListenerTest {
 			ModuleActionEvent mockEvent = buildModuleActionEvent();
 			moduleEventListener.listenModuleAction(mockEvent);
 			
-			verify(auditLogRecorder, never()).logModuleEvent(any(), anyString(), anyString(), anyString(), anyBoolean());
+			verify(auditLogRecorder, never()).logModuleEvent(any(), anyString(), anyString(), anyString(), anyBoolean(),
+			    any());
 		}
 	}
 	
