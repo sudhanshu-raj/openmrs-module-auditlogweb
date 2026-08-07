@@ -77,6 +77,6 @@ class ModuleEventListenerTest {
 	
 	private ModuleActionEvent buildModuleActionEvent() {
 		return new ModuleActionEvent(ModuleFactory.class, ModuleEventType.MODULE_LOAD, "Event1", "Event 1", "1.0.0-Snapshot",
-		        true);
+		        true, null);
 	}
 }

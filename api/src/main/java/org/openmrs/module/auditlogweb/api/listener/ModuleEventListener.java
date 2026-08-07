@@ -45,7 +45,7 @@ public class ModuleEventListener {
 				return;
 			}
 			
-			ModuleEventType moduleEventType = moduleActionEvent.getActionType();
+			ModuleEventType moduleEventType = moduleActionEvent.getEventType();
 			String moduleId = moduleActionEvent.getModuleId();
 			String moduleName = moduleActionEvent.getModuleName();
 			String moduleVersion = moduleActionEvent.getModuleVersion();

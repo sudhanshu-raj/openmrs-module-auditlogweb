@@ -98,8 +98,8 @@ public class AuditLogRecorderImpl implements AuditLogRecorder {
 				username = "anonymous";
 			}
 			
-			if (moduleId == null || moduleId.isEmpty() || moduleName == null || moduleName.isEmpty()) {
-				log.warn("Module ID or name can't be null or empty");
+			if (moduleName == null || moduleName.isEmpty()) {
+				log.warn("Module name can't be null or empty");
 				return;
 			}
 			
