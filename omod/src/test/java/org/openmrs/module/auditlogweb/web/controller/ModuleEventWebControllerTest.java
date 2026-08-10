@@ -106,7 +106,7 @@ class ModuleEventWebControllerTest {
 		    anyInt(), anyInt())).thenReturn(mockEvents);
 		when(
 		    moduleEventService.countModuleEvents(any(), any(), any(), any(), any(), any(), any(Date.class), any(Date.class)))
-		            .thenReturn(1L);
+		        .thenReturn(1L);
 		
 		mockMvc.perform(get("/module/auditlogweb/moduleEvents.form").param("eventType", "STARTED")
 		        .param("moduleName", "reporting").param("username", "admin").param("userUUID", "user-uuid")

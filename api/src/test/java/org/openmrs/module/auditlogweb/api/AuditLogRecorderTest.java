@@ -194,15 +194,6 @@ public class AuditLogRecorderTest {
 	}
 	
 	@Test
-	void loadModule_shouldReturnEarlyIfInvalidModuleName() {
-		mockedAuditLogContext.when(AuditLogContext::get).thenReturn(null);
-		
-		auditLogRecorder.logModuleEvent(ModuleEventType.MODULE_LOAD, "Event1", "", "1.0.0-Snapshot", true, null);
-		
-		verify(moduleEventDao, never()).saveModuleEvent(any(ModuleEvent.class));
-	}
-	
-	@Test
 	void loadModule_shouldReturnEarlyIfInvalidModuleType() {
 		mockedAuditLogContext.when(AuditLogContext::get).thenReturn(null);
 		
