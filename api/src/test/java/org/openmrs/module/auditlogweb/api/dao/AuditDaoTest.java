@@ -589,6 +589,7 @@ class AuditDaoTest {
 		assertNotNull(result);
 		assertThat(result, hasSize(2));
 		verify(securityEventQuery).setParameter("sessionId", sessionId);
+		verify(securityEventQuery).setFirstResult(30);
 		verify(securityEventQuery).setMaxResults(2);
 	}
 	

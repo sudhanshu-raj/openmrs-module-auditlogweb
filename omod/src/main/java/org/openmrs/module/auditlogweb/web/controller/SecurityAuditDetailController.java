@@ -83,7 +83,7 @@ public class SecurityAuditDetailController {
 			// Fetch related events from the same session
 			List<AuditSecurityEvent> relatedEvents = null;
 			if (event.getSessionId() != null && !event.getSessionId().isEmpty()) {
-				relatedEvents = auditService.getRelatedSecurityEvents(event.getSessionId(), RELATED_EVENTS_LIMIT, 0);
+				relatedEvents = auditService.getRelatedSecurityEvents(event.getSessionId(), 0, RELATED_EVENTS_LIMIT);
 			}
 			
 			model.addAttribute("event", event);

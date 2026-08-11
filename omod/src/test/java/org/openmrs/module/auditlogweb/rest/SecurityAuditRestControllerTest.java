@@ -164,7 +164,7 @@ public class SecurityAuditRestControllerTest {
 		AuditSecurityEvent event = buildAuditSecurityEvent();
 		List<AuditSecurityEvent> relatedList = Collections.singletonList(event);
 		
-		when(auditService.getRelatedSecurityEvents("session-123", 10, 0)).thenReturn(relatedList);
+		when(auditService.getRelatedSecurityEvents("session-123", 0, 10)).thenReturn(relatedList);
 		when(auditService.countRelatedSecurityEvents("session-123")).thenReturn(1L);
 		
 		mockMvc.perform(get("/rest/v1/securityauditlogs/relatedAudits").param("sessionId", "session-123").param("page", "0")
@@ -179,7 +179,7 @@ public class SecurityAuditRestControllerTest {
 		        .andExpect(jsonPath("$.currentLogs", is(1))).andExpect(jsonPath("$.totalPages", is(1)))
 		        .andExpect(jsonPath("$.currentPage", is(0)));
 		
-		verify(auditService).getRelatedSecurityEvents("session-123", 10, 0);
+		verify(auditService).getRelatedSecurityEvents("session-123", 0, 10);
 		verify(auditService).countRelatedSecurityEvents("session-123");
 	}
 	
