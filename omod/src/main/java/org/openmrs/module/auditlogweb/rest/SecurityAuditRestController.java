@@ -18,6 +18,7 @@ import org.openmrs.module.auditlogweb.api.utils.AuditSecurityEventType;
 import org.openmrs.module.auditlogweb.api.utils.UtilClass;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -59,8 +60,7 @@ public class SecurityAuditRestController {
 		if (logId != null) {
 			AuditSecurityEvent securityEvent = auditService.getSecurityEventById(logId);
 			if (securityEvent == null) {
-				return SecurityLogResponseDTO.builder().totalLogs(0).currentLogs(0).totalPages(0).currentPage(0)
-				        .securityAuditLogs(Collections.emptyList()).build();
+				throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No log found for this logId");
 			}
 			List<SecurityAuditLogDTO> securityAuditLogsDTO = mapToDTOs(Collections.singletonList(securityEvent));
 			return SecurityLogResponseDTO.builder().totalLogs(1).currentLogs(1).securityAuditLogs(securityAuditLogsDTO)

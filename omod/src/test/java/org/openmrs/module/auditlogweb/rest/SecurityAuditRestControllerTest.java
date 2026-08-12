@@ -93,6 +93,14 @@ public class SecurityAuditRestControllerTest {
 	}
 	
 	@Test
+	public void shouldThrowNotFoundErrorIfLogNotFoundForId() throws Exception {
+		when(auditService.getSecurityEventById(anyInt())).thenReturn(null);
+		mockMvc.perform(get("/rest/v1/securityauditlogs").param("logId", "2121")).andExpect(status().isNotFound())
+		        .andExpect(jsonPath("$.error", is("Not Found")))
+		        .andExpect(jsonPath("$.message", is("No log found for this logId")));
+	}
+	
+	@Test
 	public void shouldThrowErrorIfInvalidEventTypePassed() throws Exception {
 		mockMvc.perform(get("/rest/v1/securityauditlogs").param("eventType", "LOGIN_SUCESS"))
 		        .andExpect(status().isBadRequest()).andExpect(jsonPath("$.error", is("Bad Request")))
