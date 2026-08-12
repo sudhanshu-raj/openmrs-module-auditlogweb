@@ -14,8 +14,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.openmrs.api.AdministrationService;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.Module;
+import org.openmrs.module.ModuleFactory;
 import org.openmrs.module.auditlogweb.api.dao.AuditBackfillDao;
 import org.openmrs.module.auditlogweb.api.utils.EnversUtils;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -53,6 +58,121 @@ class AuditBackfillServiceTest {
 			service.backfillExistingDataIfEnabled();
 			
 			verifyNoInteractions(auditBackfillDao);
+		}
+	}
+	
+	@Test
+	void shouldSkipAuditTableCreationWhenEnversDisabled() {
+		try (MockedStatic<EnversUtils> envers = mockStatic(EnversUtils.class)) {
+			envers.when(EnversUtils::isEnversEnabled).thenReturn(false);
+			
+			service.createMissingAuditTablesIfEnabled();
+			
+			verifyNoInteractions(auditBackfillDao);
+		}
+	}
+	
+	@Test
+	void shouldCreateMissingAuditTablesWhenEnversEnabled() {
+		try (MockedStatic<EnversUtils> envers = mockStatic(EnversUtils.class)) {
+			envers.when(EnversUtils::isEnversEnabled).thenReturn(true);
+			when(auditBackfillDao.createMissingAuditTables())
+			        .thenReturn(new AuditBackfillDao.SchemaCreationResult(3, Collections.emptyList()));
+			
+			service.createMissingAuditTablesIfEnabled();
+			
+			verify(auditBackfillDao).createMissingAuditTables();
+		}
+	}
+	
+	@Test
+	void shouldNotFailWhenSomeAuditTablesCouldNotBeCreated() {
+		try (MockedStatic<EnversUtils> envers = mockStatic(EnversUtils.class)) {
+			envers.when(EnversUtils::isEnversEnabled).thenReturn(true);
+			when(auditBackfillDao.createMissingAuditTables()).thenReturn(
+			    new AuditBackfillDao.SchemaCreationResult(0, Arrays.asList("person_aud", "revision_entity")));
+			
+			service.createMissingAuditTablesIfEnabled();
+			
+			verify(auditBackfillDao).createMissingAuditTables();
+		}
+	}
+	
+	@Test
+	void shouldSkipColumnSyncWhenEnversDisabled() {
+		try (MockedStatic<EnversUtils> envers = mockStatic(EnversUtils.class)) {
+			envers.when(EnversUtils::isEnversEnabled).thenReturn(false);
+			
+			service.syncAuditColumnsIfVersionsChanged();
+			
+			verifyNoInteractions(auditBackfillDao);
+		}
+	}
+	
+	@Test
+	void shouldSkipColumnSyncWhenVersionFingerprintUnchanged() {
+		try (MockedStatic<EnversUtils> envers = mockStatic(EnversUtils.class);
+		        MockedStatic<Context> context = mockStatic(Context.class)) {
+			envers.when(EnversUtils::isEnversEnabled).thenReturn(true);
+			context.when(Context::getAdministrationService).thenReturn(administrationService);
+			when(administrationService.getGlobalProperty(AuditBackfillService.GP_COLUMN_SYNC_FINGERPRINT, ""))
+			        .thenReturn(service.currentVersionFingerprint());
+			
+			service.syncAuditColumnsIfVersionsChanged();
+			
+			verifyNoInteractions(auditBackfillDao);
+			verify(administrationService, never()).setGlobalProperty(eq(AuditBackfillService.GP_COLUMN_SYNC_FINGERPRINT),
+			    anyString());
+		}
+	}
+	
+	@Test
+	void shouldIncludeModuleVersionsInTheFingerprint() {
+		try (MockedStatic<ModuleFactory> modules = mockStatic(ModuleFactory.class)) {
+			Module fhir = new Module("FHIR");
+			fhir.setModuleId("fhir2");
+			fhir.setVersion("2.5.0");
+			modules.when(ModuleFactory::getStartedModules).thenReturn(Collections.singletonList(fhir));
+			
+			assertTrue(service.currentVersionFingerprint().contains("fhir2:2.5.0"));
+		}
+	}
+	
+	@Test
+	void shouldSyncColumnsAndRecordFingerprintWhenVersionsChanged() {
+		try (MockedStatic<EnversUtils> envers = mockStatic(EnversUtils.class);
+		        MockedStatic<Context> context = mockStatic(Context.class)) {
+			envers.when(EnversUtils::isEnversEnabled).thenReturn(true);
+			context.when(Context::getAdministrationService).thenReturn(administrationService);
+			when(administrationService.getGlobalProperty(AuditBackfillService.GP_COLUMN_SYNC_FINGERPRINT, ""))
+			        .thenReturn("some-older-fingerprint");
+			when(auditBackfillDao.addMissingAuditColumns())
+			        .thenReturn(new AuditBackfillDao.ColumnSyncResult(2, Collections.emptyList()));
+			
+			service.syncAuditColumnsIfVersionsChanged();
+			
+			verify(auditBackfillDao).addMissingAuditColumns();
+			verify(administrationService).setGlobalProperty(AuditBackfillService.GP_COLUMN_SYNC_FINGERPRINT,
+			    service.currentVersionFingerprint());
+		}
+	}
+	
+	@Test
+	void shouldNotRecordFingerprintWhenColumnSyncFailedForSomeTables() {
+		try (MockedStatic<EnversUtils> envers = mockStatic(EnversUtils.class);
+		        MockedStatic<Context> context = mockStatic(Context.class)) {
+			envers.when(EnversUtils::isEnversEnabled).thenReturn(true);
+			context.when(Context::getAdministrationService).thenReturn(administrationService);
+			when(administrationService.getGlobalProperty(AuditBackfillService.GP_COLUMN_SYNC_FINGERPRINT, ""))
+			        .thenReturn("some-older-fingerprint");
+			when(auditBackfillDao.addMissingAuditColumns())
+			        .thenReturn(new AuditBackfillDao.ColumnSyncResult(1, Collections.singletonList("person_aud")));
+			
+			service.syncAuditColumnsIfVersionsChanged();
+			
+			// the fingerprint must not advance, so the sync retries on the next startup
+			verify(administrationService, never()).setGlobalProperty(eq(AuditBackfillService.GP_COLUMN_SYNC_FINGERPRINT),
+			    anyString());
 		}
 	}
 	

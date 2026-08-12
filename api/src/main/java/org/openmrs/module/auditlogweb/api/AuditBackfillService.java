@@ -13,13 +13,20 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.api.AdministrationService;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.Module;
+import org.openmrs.module.ModuleFactory;
 import org.openmrs.module.auditlogweb.api.dao.AuditBackfillDao;
+import org.openmrs.module.auditlogweb.api.dao.AuditBackfillDao.ColumnSyncResult;
+import org.openmrs.module.auditlogweb.api.dao.AuditBackfillDao.SchemaCreationResult;
 import org.openmrs.module.auditlogweb.api.dao.AuditBackfillDao.TableMapping;
 import org.openmrs.module.auditlogweb.api.utils.EnversUtils;
+import org.openmrs.util.OpenmrsConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -37,7 +44,81 @@ public class AuditBackfillService {
 	
 	public static final String GP_BACKFILL_REVISION = "auditlogweb.backfillExistingData.revision";
 	
+	public static final String GP_COLUMN_SYNC_FINGERPRINT = "auditlogweb.auditColumnSync.versionFingerprint";
+	
 	private final AuditBackfillDao auditBackfillDao;
+	
+	/**
+	 * Creates any missing Envers audit tables if Envers is enabled; a no-op when all tables already
+	 * exist. Not gated behind a global property: the tables are required for the module to function at
+	 * all, creation is idempotent, and only tables that do not exist are touched.
+	 */
+	public void createMissingAuditTablesIfEnabled() {
+		if (!EnversUtils.isEnversEnabled()) {
+			log.info("Envers is disabled (hibernate.integration.envers.enabled != true); skipping audit table creation.");
+			return;
+		}
+		SchemaCreationResult result = auditBackfillDao.createMissingAuditTables();
+		if (result.getCreated() > 0) {
+			log.warn("Created {} missing Envers audit table(s).", result.getCreated());
+		}
+		if (!result.getMissingTables().isEmpty()) {
+			log.error("{} Envers table(s) could not be created and audited writes to them will fail: {}",
+			    result.getMissingTables().size(), result.getMissingTables());
+		}
+	}
+	
+	/**
+	 * Adds any base-table columns missing from existing audit tables, but only when the platform or
+	 * module versions differ from those recorded at the last clean sweep — audited base tables gain
+	 * columns through platform and module upgrades, both of which change the version fingerprint. The
+	 * fingerprint is only recorded when the sweep had no failures, so failed tables are retried and
+	 * re-reported on every startup until repaired.
+	 */
+	public void syncAuditColumnsIfVersionsChanged() {
+		if (!EnversUtils.isEnversEnabled()) {
+			log.info("Envers is disabled (hibernate.integration.envers.enabled != true); skipping audit column sync.");
+			return;
+		}
+		AdministrationService administrationService = Context.getAdministrationService();
+		String currentFingerprint = currentVersionFingerprint();
+		String lastSyncedFingerprint = administrationService.getGlobalProperty(GP_COLUMN_SYNC_FINGERPRINT, "");
+		if (currentFingerprint.equals(lastSyncedFingerprint)) {
+			return;
+		}
+		
+		ColumnSyncResult result = auditBackfillDao.addMissingAuditColumns();
+		if (result.getColumnsAdded() > 0) {
+			log.warn("Platform or module versions changed: added {} missing column(s) to existing Envers audit tables.",
+			    result.getColumnsAdded());
+		}
+		if (!result.getFailedTables().isEmpty()) {
+			log.error(
+			    "Column sync failed for {} audit table(s); audited writes to them may fail: {}. The sync retries on the next startup.",
+			    result.getFailedTables().size(), result.getFailedTables());
+			return;
+		}
+		administrationService.setGlobalProperty(GP_COLUMN_SYNC_FINGERPRINT, currentFingerprint);
+	}
+	
+	/**
+	 * The platform version plus every started module's id and version, sorted — changes whenever the
+	 * platform or any module is upgraded, installed or removed, the events that can alter audited base
+	 * tables.
+	 */
+	String currentVersionFingerprint() {
+		StringBuilder fingerprint = new StringBuilder(
+		        OpenmrsConstants.OPENMRS_VERSION != null ? OpenmrsConstants.OPENMRS_VERSION : "");
+		List<String> moduleVersions = new ArrayList<>();
+		for (Module module : ModuleFactory.getStartedModules()) {
+			moduleVersions.add(module.getModuleId() + ":" + module.getVersion());
+		}
+		Collections.sort(moduleVersions);
+		for (String moduleVersion : moduleVersions) {
+			fingerprint.append('|').append(moduleVersion);
+		}
+		return fingerprint.toString();
+	}
 	
 	/**
 	 * Runs the backfill if Envers is enabled, the feature flag is on, and it has not already run.
@@ -59,7 +140,7 @@ public class AuditBackfillService {
 			return;
 		}
 		
-		List<TableMapping> mappings = auditBackfillDao.resolveAuditedTableMappings();
+		List<TableMapping> mappings = auditBackfillDao.resolveBackfillableTableMappings();
 		if (mappings.isEmpty()) {
 			log.warn("No audited entities resolved from the metamodel; aborting audit backfill.");
 			return;
