@@ -18,7 +18,6 @@ import org.openmrs.module.auditlogweb.api.utils.AuditSecurityEventType;
 import org.openmrs.module.auditlogweb.api.utils.UtilClass;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -34,9 +33,9 @@ import java.util.List;
 @RequestMapping("/rest/" + RestConstants.VERSION_1 + "/securityauditlogs")
 @RequiredArgsConstructor
 public class SecurityAuditRestController {
-	
+
 	private final AuditService auditService;
-	
+
 	@GetMapping
 	public SecurityLogResponseDTO fetchSecurityAudits(@RequestParam(value = "logId", required = false) Integer logId,
 	        @RequestParam(value = "eventType", required = false) String eventType,
@@ -45,18 +44,18 @@ public class SecurityAuditRestController {
 	        @RequestParam(value = "endDate", required = false) String endDate,
 	        @RequestParam(value = "page", defaultValue = "0") int page,
 	        @RequestParam(value = "size", defaultValue = "15") int size) {
-		
+
 		if (logId != null && logId <= 0) {
 			throw new IllegalArgumentException("Please provide a valid log ID");
 		}
-		
+
 		if (eventType != null && !eventType.trim().isEmpty()) {
 			AuditSecurityEventType parsed = AuditSecurityEventType.fromName(eventType);
 			if (parsed == null || parsed == AuditSecurityEventType.UNKNOWN) {
 				throw new IllegalArgumentException("Invalid eventType " + eventType);
 			}
 		}
-		
+
 		if (logId != null) {
 			AuditSecurityEvent securityEvent = auditService.getSecurityEventById(logId);
 			if (securityEvent == null) {
@@ -66,54 +65,54 @@ public class SecurityAuditRestController {
 			return SecurityLogResponseDTO.builder().totalLogs(1).currentLogs(1).securityAuditLogs(securityAuditLogsDTO)
 			        .totalPages(1).currentPage(0).build();
 		}
-		
+
 		if (page < 0) {
 			page = 0;
 		}
 		if (size <= 0) {
 			size = 15;
 		}
-		
+
 		Date start = UtilClass.parseDate(startDate, false);
 		Date end = UtilClass.parseDate(endDate, true);
-		
+
 		List<AuditSecurityEvent> securityEvents = auditService.getSecurityEvents(eventType, username, start, end, page,
 		    size);
 		long totalCount = auditService.countSecurityEvents(eventType, username, start, end);
 		int totalPages = UtilClass.computeTotalPages(totalCount, size);
-		
+
 		List<SecurityAuditLogDTO> securityAuditLogsDTO = mapToDTOs(securityEvents);
-		
+
 		return SecurityLogResponseDTO.builder().totalLogs(totalCount).currentLogs(securityAuditLogsDTO.size())
 		        .totalPages(totalPages).currentPage(page).securityAuditLogs(securityAuditLogsDTO).build();
 	}
-	
+
 	@GetMapping("/relatedAudits")
 	public SecurityLogResponseDTO fetchRelatedAudits(@RequestParam(value = "sessionId") String sessionId,
 	        @RequestParam(value = "page", defaultValue = "0") int page,
 	        @RequestParam(value = "size", defaultValue = "15") int size) {
-		
+
 		if (sessionId == null || sessionId.isEmpty()) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid session id");
 		}
-		
+
 		if (page < 0) {
 			page = 0;
 		}
 		if (size <= 0) {
 			size = 15;
 		}
-		
+
 		List<AuditSecurityEvent> allRelated = auditService.getRelatedSecurityEvents(sessionId, page, size);
 		long totalCount = auditService.countRelatedSecurityEvents(sessionId);
 		int totalPages = UtilClass.computeTotalPages(totalCount, size);
-		
+
 		List<SecurityAuditLogDTO> securityAuditLogsDTO = mapToDTOs(allRelated);
-		
+
 		return SecurityLogResponseDTO.builder().totalLogs(totalCount).currentLogs(securityAuditLogsDTO.size())
 		        .totalPages(totalPages).currentPage(page).securityAuditLogs(securityAuditLogsDTO).build();
 	}
-	
+
 	private SecurityAuditLogDTO mapToDTO(AuditSecurityEvent event) {
 		if (event == null) {
 			return null;
@@ -122,7 +121,7 @@ public class SecurityAuditRestController {
 		        .userUuid(event.getUserUuid()).eventTime(event.getEventTime()).ipAddress(event.getIpAddress())
 		        .userAgent(event.getUserAgent()).sessionId(event.getSessionId()).details(event.getDetails()).build();
 	}
-	
+
 	private List<SecurityAuditLogDTO> mapToDTOs(List<AuditSecurityEvent> events) {
 		if (events == null) {
 			return Collections.emptyList();
