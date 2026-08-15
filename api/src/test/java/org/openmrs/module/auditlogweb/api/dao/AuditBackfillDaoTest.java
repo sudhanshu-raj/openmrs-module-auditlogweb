@@ -24,6 +24,9 @@ import java.util.Set;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AuditBackfillDaoTest {
 	
@@ -112,6 +115,117 @@ class AuditBackfillDaoTest {
 		assertEquals("patient", dao.quoteIdentifier("patient", ""));
 		assertEquals("`we``ird`", dao.quoteIdentifier("we`ird", "`"));
 		assertEquals("\"we\"\"ird\"", dao.quoteIdentifier("we\"ird", "\""));
+	}
+	
+	@Test
+	void shouldStripAuditAffixesFromAuditTableName() {
+		assertEquals("role_privilege", dao.stripAuditAffixes("role_privilege_audit", "", "_audit"));
+		assertEquals("person", dao.stripAuditAffixes("aud_person_hist", "aud_", "_hist"));
+		assertEquals("person", dao.stripAuditAffixes("person_AUD", "", "_AUD"));
+	}
+	
+	@Test
+	void shouldReturnNullFromStripAuditAffixesWhenNameDoesNotMatch() {
+		assertNull(dao.stripAuditAffixes("person", "", "_audit"));
+		assertNull(dao.stripAuditAffixes("_audit", "", "_audit"));
+		assertNull(dao.stripAuditAffixes("person_audit", "", ""));
+		assertNull(dao.stripAuditAffixes(null, "", "_audit"));
+	}
+	
+	@Test
+	void shouldReattachSizeArgumentsToSizedColumnTypes() {
+		assertEquals("VARCHAR(50)", dao.columnTypeDdl("VARCHAR", 50, 0));
+		assertEquals("CHAR(38)", dao.columnTypeDdl("CHAR", 38, 0));
+		assertEquals("DECIMAL(10, 2)", dao.columnTypeDdl("DECIMAL", 10, 2));
+	}
+	
+	@Test
+	void shouldPassThroughUnsizedColumnTypes() {
+		assertEquals("datetime", dao.columnTypeDdl("datetime", 19, 0));
+		assertEquals("INT", dao.columnTypeDdl("INT", 10, 0));
+		assertEquals("TEXT", dao.columnTypeDdl("TEXT", 65535, 0));
+	}
+	
+	@Test
+	void shouldBuildCreateRevisionTableSql() {
+		List<AuditBackfillDao.ColumnDefinition> columns = Arrays.asList(
+		    new AuditBackfillDao.ColumnDefinition("timestamp", "bigint", false),
+		    new AuditBackfillDao.ColumnDefinition("changedBy", "integer", true),
+		    new AuditBackfillDao.ColumnDefinition("changedOn", "datetime", true));
+		
+		String sql = dao.buildCreateRevisionTableSql("revision_entity", "id", "integer not null auto_increment", columns,
+		    "`");
+		
+		assertEquals("CREATE TABLE `revision_entity` (`id` integer not null auto_increment, "
+		        + "`timestamp` bigint NOT NULL, `changedBy` integer, `changedOn` datetime, PRIMARY KEY (`id`))",
+		    sql);
+	}
+	
+	@Test
+	void shouldBuildCreateAuditTableSqlWithCompositePrimaryKey() {
+		List<AuditBackfillDao.ColumnDefinition> columns = Arrays.asList(
+		    new AuditBackfillDao.ColumnDefinition("person_id", "INT", true),
+		    new AuditBackfillDao.ColumnDefinition("gender", "VARCHAR(50)", true));
+		
+		String sql = dao.buildCreateAuditTableSql(new TableMapping("person", "person_audit"), columns,
+		    Collections.singletonList("person_id"), "integer", "tinyint", "`");
+		
+		assertEquals("CREATE TABLE `person_audit` (`person_id` INT, `gender` VARCHAR(50), "
+		        + "REV integer NOT NULL, REVTYPE tinyint, PRIMARY KEY (`person_id`, REV))",
+		    sql);
+	}
+	
+	@Test
+	void shouldBuildCreateAuditTableSqlWithoutPrimaryKeyWhenBaseTableHasNone() {
+		List<AuditBackfillDao.ColumnDefinition> columns = Collections
+		        .singletonList(new AuditBackfillDao.ColumnDefinition("obs_id", "INT", true));
+		
+		String sql = dao.buildCreateAuditTableSql(new TableMapping("obs_reference_range", "obs_reference_range_audit"),
+		    columns, Collections.emptyList(), "integer", "tinyint", "");
+		
+		assertEquals("CREATE TABLE obs_reference_range_audit (obs_id INT, REV integer NOT NULL, REVTYPE tinyint)", sql);
+	}
+	
+	@Test
+	void shouldBuildCreateRevIndexSql() {
+		TableMapping mapping = new TableMapping("person", "person_audit");
+		
+		assertEquals("CREATE INDEX `person_audit_rev` ON `person_audit` (REV)", dao.buildCreateRevIndexSql(mapping, "`"));
+		assertEquals("CREATE INDEX person_audit_rev ON person_audit (REV)", dao.buildCreateRevIndexSql(mapping, ""));
+	}
+	
+	@Test
+	void shouldBuildAddColumnSql() {
+		TableMapping mapping = new TableMapping("person", "person_audit");
+		AuditBackfillDao.ColumnDefinition column = new AuditBackfillDao.ColumnDefinition("new_col", "VARCHAR(50)", true);
+		
+		assertEquals("ALTER TABLE `person_audit` ADD `new_col` VARCHAR(50)", dao.buildAddColumnSql(mapping, column, "`"));
+		assertEquals("ALTER TABLE person_audit ADD new_col VARCHAR(50)", dao.buildAddColumnSql(mapping, column, ""));
+	}
+	
+	@Test
+	void shouldKeepOnlyMappingsWhoseBaseTableExists() {
+		TableMapping withBase = new TableMapping("role_privilege", "role_privilege_AUD");
+		TableMapping withoutBase = new TableMapping("Location_LocationAttribute", "Location_LocationAttribute_AUD");
+		Set<String> existingTables = new java.util.HashSet<>(Arrays.asList("role_privilege", "location", "person"));
+		
+		List<TableMapping> result = dao.filterMappingsWithExistingBase(Arrays.asList(withBase, withoutBase), existingTables);
+		
+		assertEquals(Collections.singletonList("role_privilege_AUD"), auditNames(result));
+	}
+	
+	@Test
+	void shouldRecognizeRevisionAndAuditTablesAsEnversTables() {
+		assertTrue(dao.isEnversTable("revision_entity", "", "_AUD"));
+		assertTrue(dao.isEnversTable("REVINFO", "", "_AUD"));
+		assertTrue(dao.isEnversTable("person_AUD", "", "_AUD"));
+		assertTrue(dao.isEnversTable("Location_LocationAttribute_audit", "", "_audit"));
+	}
+	
+	@Test
+	void shouldNotRecognizeBaseTablesAsEnversTables() {
+		assertFalse(dao.isEnversTable("person", "", "_AUD"));
+		assertFalse(dao.isEnversTable("location_attribute", "", "_audit"));
 	}
 	
 	private static List<String> auditNames(List<TableMapping> mappings) {
