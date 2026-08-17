@@ -72,7 +72,9 @@ public class ReadAuditRestControllerTest {
 		when(readAuditService.getReadAuditLogById(1)).thenReturn(mockReadAuditLog);
 		when(readAuditService.mapToReadAuditLogDTO(logList)).thenReturn(Collections.emptyList());
 		
-		mockMvc.perform(get("/rest/v1/readauditlogs").param("logId", "1")).andExpect(status().isOk());
+		mockMvc.perform(get("/rest/v1/readauditlogs").param("logId", "1")).andExpect(status().isOk())
+		        .andExpect(jsonPath("$.totalLogs", is(1))).andExpect(jsonPath("$.currentLogs", is(1)))
+		        .andExpect(jsonPath("$.totalPages", is(1))).andExpect(jsonPath("$.currentPage", is(0)));
 		
 		verify(readAuditService).getReadAuditLogById(1);
 		verify(readAuditService).mapToReadAuditLogDTO(logList);
