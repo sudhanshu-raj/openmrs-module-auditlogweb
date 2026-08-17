@@ -51,8 +51,7 @@ public class ReadAuditRestController {
 		if (logId != null) {
 			ReadAuditLog readAuditLog = readAuditService.getReadAuditLogById(logId);
 			if (readAuditLog == null) {
-				return ReadAuditLogResponseDTO.builder().totalLogs(0).currentLogs(0).readAuditLogs(Collections.emptyList())
-				        .build();
+				throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No log found for this logId");
 			}
 			List<ReadAuditLogDTO> readAuditLogsDTO = readAuditService
 			        .mapToReadAuditLogDTO(Collections.singletonList(readAuditLog));
