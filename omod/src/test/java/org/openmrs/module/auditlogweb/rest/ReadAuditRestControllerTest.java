@@ -18,6 +18,8 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -94,6 +96,18 @@ public class ReadAuditRestControllerTest {
 		mockMvc.perform(get("/rest/v1/readauditlogs").param("logId", "999")).andExpect(status().isNotFound())
 		        .andExpect(jsonPath("$.error", is("Not Found")))
 		        .andExpect(jsonPath("$.message", is("No log found for this logId")));
+	}
+	
+	@Test
+	public void pageSizeShouldNotGoAboveTheCap() throws Exception {
+		when(readAuditService.getReadAuditLogs(any(), any(), any(), any(), anyInt(), eq(200)))
+		        .thenReturn(Collections.emptyList());
+		when(readAuditService.countReadAuditLogs(any(), any(), any(), any())).thenReturn(200L);
+		
+		mockMvc.perform(get("/rest/v1/readauditlogs").param("size", "10000")).andExpect(status().isOk())
+		        .andExpect(jsonPath("$.totalLogs", is(200)));
+		
+		verify(readAuditService).getReadAuditLogs(any(), any(), any(), any(), eq(0), eq(200));
 	}
 	
 	@Test

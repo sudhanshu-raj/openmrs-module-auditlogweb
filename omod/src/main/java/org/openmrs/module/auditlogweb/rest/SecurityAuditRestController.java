@@ -14,6 +14,7 @@ import org.openmrs.module.auditlogweb.AuditSecurityEvent;
 import org.openmrs.module.auditlogweb.api.AuditService;
 import org.openmrs.module.auditlogweb.api.dto.SecurityAuditLogDTO;
 import org.openmrs.module.auditlogweb.api.dto.SecurityLogResponseDTO;
+import org.openmrs.module.auditlogweb.api.utils.AuditLogConstants;
 import org.openmrs.module.auditlogweb.api.utils.AuditSecurityEventType;
 import org.openmrs.module.auditlogweb.api.utils.UtilClass;
 import org.openmrs.module.webservices.rest.web.RestConstants;
@@ -72,6 +73,7 @@ public class SecurityAuditRestController {
 		if (size <= 0) {
 			size = 15;
 		}
+		size = Math.min(size, AuditLogConstants.MAX_PAGE_SIZE);
 		
 		Date start = UtilClass.parseDate(startDate, false);
 		Date end = UtilClass.parseDate(endDate, true);
@@ -92,7 +94,7 @@ public class SecurityAuditRestController {
 	        @RequestParam(value = "page", defaultValue = "0") int page,
 	        @RequestParam(value = "size", defaultValue = "15") int size) {
 		
-		if (sessionId == null || sessionId.isEmpty()) {
+		if (sessionId == null || sessionId.trim().isEmpty()) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid session id");
 		}
 		

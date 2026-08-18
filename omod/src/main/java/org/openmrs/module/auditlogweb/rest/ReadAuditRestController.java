@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.openmrs.module.auditlogweb.ReadAuditLog;
 import org.openmrs.module.auditlogweb.api.ReadAuditService;
 import org.openmrs.module.auditlogweb.api.dto.ReadAuditLogResponseDTO;
+import org.openmrs.module.auditlogweb.api.utils.AuditLogConstants;
 import org.openmrs.module.auditlogweb.api.utils.UtilClass;
 import org.openmrs.module.auditlogweb.api.dto.ReadAuditLogDTO;
 import org.openmrs.module.webservices.rest.web.RestConstants;
@@ -65,6 +66,7 @@ public class ReadAuditRestController {
 		if (size <= 0) {
 			size = 15;
 		}
+		size = Math.min(size, AuditLogConstants.MAX_PAGE_SIZE);
 		
 		Date start = UtilClass.parseDate(startDate, false);
 		Date end = UtilClass.parseDate(endDate, true);

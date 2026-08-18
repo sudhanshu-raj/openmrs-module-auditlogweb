@@ -34,6 +34,8 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -110,6 +112,18 @@ public class SecurityAuditRestControllerTest {
 	@Test
 	public void shouldReturnStatusOkIfEmptyEventTypePassed() throws Exception {
 		mockMvc.perform(get("/rest/v1/securityauditlogs").param("eventType", "")).andExpect(status().isOk());
+	}
+	
+	@Test
+	public void pageSizeShouldNotGoAboveTheCap() throws Exception {
+		when(auditService.getSecurityEvents(any(), any(), any(), any(), anyInt(), eq(200)))
+		        .thenReturn(Collections.emptyList());
+		when(auditService.countSecurityEvents(any(), any(), any(), any())).thenReturn(200L);
+		
+		mockMvc.perform(get("/rest/v1/securityauditlogs").param("size", "10000")).andExpect(status().isOk())
+		        .andExpect(jsonPath("$.totalLogs", is(200)));
+		
+		verify(auditService).getSecurityEvents(any(), any(), any(), any(), eq(0), eq(200));
 	}
 	
 	@Test

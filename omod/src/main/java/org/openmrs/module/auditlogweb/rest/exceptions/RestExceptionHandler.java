@@ -13,6 +13,8 @@ import org.hibernate.ObjectNotFoundException;
 import org.openmrs.api.APIAuthenticationException;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.auditlogweb.api.exception.AuditLogUnavailableException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -46,6 +48,8 @@ import java.util.Map;
  */
 @ControllerAdvice
 public class RestExceptionHandler {
+	
+	private final Logger log = LoggerFactory.getLogger(RestExceptionHandler.class);
 	
 	@ExceptionHandler(IllegalArgumentException.class)
 	public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
@@ -89,8 +93,10 @@ public class RestExceptionHandler {
 	@ExceptionHandler(APIAuthenticationException.class)
 	public ResponseEntity<Map<String, String>> handleAPIAuthException(APIAuthenticationException ex) {
 		if (Context.isAuthenticated()) {
+			log.warn("Request failed due failed authentication attempt");
 			return buildResponseEntity("Forbidden", ex.getMessage(), HttpStatus.FORBIDDEN);
 		}
+		log.warn("Request failed due to not have enough permissions");
 		return buildResponseEntity("Unauthorized", ex.getMessage(), HttpStatus.UNAUTHORIZED);
 	}
 	
