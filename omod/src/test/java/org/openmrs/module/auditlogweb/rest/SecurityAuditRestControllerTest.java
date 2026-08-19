@@ -24,6 +24,8 @@ import org.openmrs.module.auditlogweb.rest.exceptions.RestExceptionHandler;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -81,6 +83,7 @@ public class SecurityAuditRestControllerTest {
 		        .andExpect(jsonPath("$.securityAuditLogs[0].ipAddress", is("127.0.0.1")))
 		        .andExpect(jsonPath("$.securityAuditLogs[0].userAgent", is("user-agent-1")))
 		        .andExpect(jsonPath("$.securityAuditLogs[0].sessionId", is("session-123")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].eventTime", is("25/12/2026 14:30:00")))
 		        .andExpect(jsonPath("$.securityAuditLogs[0].details", is("{}"))).andExpect(jsonPath("$.totalLogs", is(1)))
 		        .andExpect(jsonPath("$.totalPages", is(1))).andExpect(jsonPath("$.currentPage", is(0)));
 		
@@ -142,6 +145,7 @@ public class SecurityAuditRestControllerTest {
 		        .andExpect(jsonPath("$.securityAuditLogs[0].ipAddress", is("127.0.0.1")))
 		        .andExpect(jsonPath("$.securityAuditLogs[0].userAgent", is("user-agent-1")))
 		        .andExpect(jsonPath("$.securityAuditLogs[0].sessionId", is("session-123")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].eventTime", is("25/12/2026 14:30:00")))
 		        .andExpect(jsonPath("$.securityAuditLogs[0].details", is("{}"))).andExpect(jsonPath("$.totalLogs", is(1)))
 		        .andExpect(jsonPath("$.currentLogs", is(1))).andExpect(jsonPath("$.totalPages", is(1)))
 		        .andExpect(jsonPath("$.currentPage", is(0)));
@@ -166,6 +170,7 @@ public class SecurityAuditRestControllerTest {
 		        .andExpect(jsonPath("$.securityAuditLogs[0].ipAddress", is("127.0.0.1")))
 		        .andExpect(jsonPath("$.securityAuditLogs[0].userAgent", is("user-agent-1")))
 		        .andExpect(jsonPath("$.securityAuditLogs[0].sessionId", is("session-123")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].eventTime", is("25/12/2026 14:30:00")))
 		        .andExpect(jsonPath("$.securityAuditLogs[0].details", is("{}"))).andExpect(jsonPath("$.totalLogs", is(1)))
 		        .andExpect(jsonPath("$.currentLogs", is(1))).andExpect(jsonPath("$.totalPages", is(1)))
 		        .andExpect(jsonPath("$.currentPage", is(0)));
@@ -197,6 +202,7 @@ public class SecurityAuditRestControllerTest {
 		        .andExpect(jsonPath("$.securityAuditLogs[0].ipAddress", is("127.0.0.1")))
 		        .andExpect(jsonPath("$.securityAuditLogs[0].userAgent", is("user-agent-1")))
 		        .andExpect(jsonPath("$.securityAuditLogs[0].sessionId", is("session-123")))
+		        .andExpect(jsonPath("$.securityAuditLogs[0].eventTime", is("25/12/2026 14:30:00")))
 		        .andExpect(jsonPath("$.securityAuditLogs[0].details", is("{}"))).andExpect(jsonPath("$.totalLogs", is(1)))
 		        .andExpect(jsonPath("$.currentLogs", is(1))).andExpect(jsonPath("$.totalPages", is(1)))
 		        .andExpect(jsonPath("$.currentPage", is(0)));
@@ -228,8 +234,9 @@ public class SecurityAuditRestControllerTest {
 	}
 	
 	private AuditSecurityEvent buildAuditSecurityEvent() {
+		Date fixedDate = Date.from(LocalDateTime.of(2026, 12, 25, 14, 30, 0).atZone(ZoneId.of("GMT")).toInstant());
 		return AuditSecurityEvent.builder().id(1).eventType(AuditSecurityEventType.LOGIN_SUCCESS).username("admin")
-		        .userUuid("user-uuid-1").eventTime(new Date()).ipAddress("127.0.0.1").userAgent("user-agent-1")
+		        .userUuid("user-uuid-1").eventTime(fixedDate).ipAddress("127.0.0.1").userAgent("user-agent-1")
 		        .sessionId("session-123").details("{}").build();
 	}
 }

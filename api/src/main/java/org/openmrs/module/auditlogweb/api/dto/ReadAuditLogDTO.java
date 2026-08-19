@@ -9,6 +9,7 @@
  */
 package org.openmrs.module.auditlogweb.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Data;
 
@@ -31,6 +32,7 @@ public class ReadAuditLogDTO {
 	
 	private String userUUID;
 	
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss", timezone = "GMT")
 	private Date eventTime;
 	
 	private String ipAddress;
