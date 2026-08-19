@@ -98,6 +98,7 @@ public class ReadAuditRestController {
 		if (size <= 0) {
 			size = 15;
 		}
+		size = Math.min(size, AuditLogConstants.MAX_PAGE_SIZE);
 		
 		List<ReadAuditLog> relatedAudits = readAuditService.getRelatedReadLogs(sessionId, page, size);
 		long totalCount = readAuditService.countRelatedReadLogs(sessionId);

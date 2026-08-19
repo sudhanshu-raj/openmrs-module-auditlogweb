@@ -104,6 +104,7 @@ public class SecurityAuditRestController {
 		if (size <= 0) {
 			size = 15;
 		}
+		size = Math.min(size, AuditLogConstants.MAX_PAGE_SIZE);
 		
 		List<AuditSecurityEvent> allRelated = auditService.getRelatedSecurityEvents(sessionId, page, size);
 		long totalCount = auditService.countRelatedSecurityEvents(sessionId);

@@ -118,7 +118,7 @@ public class SecurityAuditRestControllerTest {
 	}
 	
 	@Test
-	public void pageSizeShouldNotGoAboveTheCap() throws Exception {
+	public void pageSizeShouldNotGoAboveTheCapForFetchSecurityAuditLogs() throws Exception {
 		when(auditService.getSecurityEvents(any(), any(), any(), any(), anyInt(), eq(200)))
 		        .thenReturn(Collections.emptyList());
 		when(auditService.countSecurityEvents(any(), any(), any(), any())).thenReturn(200L);
@@ -209,6 +209,18 @@ public class SecurityAuditRestControllerTest {
 		
 		verify(auditService).getRelatedSecurityEvents("session-123", 0, 10);
 		verify(auditService).countRelatedSecurityEvents("session-123");
+	}
+	
+	@Test
+	public void pageSizeShouldNotGoAboveTheCapForFetchRelatedSecurityAuditLogs() throws Exception {
+		when(auditService.getRelatedSecurityEvents(any(), anyInt(), eq(200))).thenReturn(Collections.emptyList());
+		when(auditService.countRelatedSecurityEvents(any())).thenReturn(200L);
+		
+		mockMvc.perform(
+		    get("/rest/v1/securityauditlogs/relatedAudits").param("sessionId", "session-123").param("size", "10000"))
+		        .andExpect(status().isOk()).andExpect(jsonPath("$.totalLogs", is(200)));
+		
+		verify(auditService).getRelatedSecurityEvents(any(), eq(0), eq(200));
 	}
 	
 	@Test

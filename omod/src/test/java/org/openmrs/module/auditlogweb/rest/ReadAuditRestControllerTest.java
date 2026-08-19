@@ -99,7 +99,7 @@ public class ReadAuditRestControllerTest {
 	}
 	
 	@Test
-	public void pageSizeShouldNotGoAboveTheCap() throws Exception {
+	public void pageSizeShouldNotGoAboveTheCapForFetchReadAuditLogs() throws Exception {
 		when(readAuditService.getReadAuditLogs(any(), any(), any(), any(), anyInt(), eq(200)))
 		        .thenReturn(Collections.emptyList());
 		when(readAuditService.countReadAuditLogs(any(), any(), any(), any())).thenReturn(200L);
@@ -165,6 +165,17 @@ public class ReadAuditRestControllerTest {
 		verify(readAuditService).getRelatedReadLogs("session-123", 0, 10);
 		verify(readAuditService).countRelatedReadLogs("session-123");
 		verify(readAuditService).mapToReadAuditLogDTO(relatedList);
+	}
+	
+	@Test
+	public void pageSizeShouldNotGoAboveTheCapForFetchRelatedReadAuditLogs() throws Exception {
+		when(readAuditService.getRelatedReadLogs(any(), anyInt(), eq(200))).thenReturn(Collections.emptyList());
+		when(readAuditService.countRelatedReadLogs(any())).thenReturn(200L);
+		
+		mockMvc.perform(get("/rest/v1/readauditlogs/relatedAudits").param("sessionId", "session-123").param("size", "10000"))
+		        .andExpect(status().isOk()).andExpect(jsonPath("$.totalLogs", is(200)));
+		
+		verify(readAuditService).getRelatedReadLogs(any(), eq(0), eq(200));
 	}
 	
 }
