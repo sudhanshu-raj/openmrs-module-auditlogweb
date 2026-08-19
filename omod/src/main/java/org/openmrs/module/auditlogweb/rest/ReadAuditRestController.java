@@ -88,7 +88,7 @@ public class ReadAuditRestController {
 	        @RequestParam(value = "page", defaultValue = "0") int page,
 	        @RequestParam(value = "size", defaultValue = "15") int size) {
 		
-		if (sessionId == null || sessionId.isEmpty()) {
+		if (sessionId == null || sessionId.trim().isEmpty()) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid session id");
 		}
 		

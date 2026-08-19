@@ -27,12 +27,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.mockito.MockitoAnnotations;
 import org.openmrs.module.auditlogweb.ReadAuditLog;
 import org.openmrs.module.auditlogweb.api.ReadAuditService;
+import org.openmrs.module.auditlogweb.api.dto.ReadAuditLogDTO;
 import org.openmrs.module.auditlogweb.rest.exceptions.RestExceptionHandler;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import static org.hamcrest.Matchers.is;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 public class ReadAuditRestControllerTest {
@@ -72,9 +76,12 @@ public class ReadAuditRestControllerTest {
 		ReadAuditLog mockReadAuditLog = mock(ReadAuditLog.class);
 		List<ReadAuditLog> logList = Collections.singletonList(mockReadAuditLog);
 		when(readAuditService.getReadAuditLogById(1)).thenReturn(mockReadAuditLog);
-		when(readAuditService.mapToReadAuditLogDTO(logList)).thenReturn(Collections.emptyList());
+		Date fixedDate = Date.from(LocalDateTime.of(2026, 12, 25, 14, 30, 0).atZone(ZoneId.of("GMT")).toInstant());
+		when(readAuditService.mapToReadAuditLogDTO(logList))
+		        .thenReturn(Collections.singletonList(ReadAuditLogDTO.builder().id(1).eventTime(fixedDate).build()));
 		
 		mockMvc.perform(get("/rest/v1/readauditlogs").param("logId", "1")).andExpect(status().isOk())
+		        .andExpect(jsonPath("$.readAuditLogs[0].eventTime", is("25/12/2026 14:30:00")))
 		        .andExpect(jsonPath("$.totalLogs", is(1))).andExpect(jsonPath("$.currentLogs", is(1)))
 		        .andExpect(jsonPath("$.totalPages", is(1))).andExpect(jsonPath("$.currentPage", is(0)));
 		

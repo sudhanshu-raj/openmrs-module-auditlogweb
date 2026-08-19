@@ -93,11 +93,11 @@ public class RestExceptionHandler {
 	@ExceptionHandler(APIAuthenticationException.class)
 	public ResponseEntity<Map<String, String>> handleAPIAuthException(APIAuthenticationException ex) {
 		if (Context.isAuthenticated()) {
-			log.warn("Request failed due to not have enough permissions");
+			log.warn("Request denied, the user does not have the required privileges: {}", ex.getMessage());
 			return buildResponseEntity("Forbidden", ex.getMessage(), HttpStatus.FORBIDDEN);
 		}
 		
-		log.warn("Request failed due failed authentication attempt");
+		log.warn("Request denied, the caller is not authenticated: {}", ex.getMessage());
 		return buildResponseEntity("Unauthorized", ex.getMessage(), HttpStatus.UNAUTHORIZED);
 	}
 	
