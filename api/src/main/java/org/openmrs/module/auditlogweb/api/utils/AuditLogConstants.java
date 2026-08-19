@@ -18,5 +18,5 @@ public final class AuditLogConstants {
 	
 	public static final String VIEW_READ_AUDIT_LOGS = "View Read Audit Logs";
 	
-	public static final Integer MAX_PAGE_SIZE = 200;
+	public static final int MAX_PAGE_SIZE = 200;
 }

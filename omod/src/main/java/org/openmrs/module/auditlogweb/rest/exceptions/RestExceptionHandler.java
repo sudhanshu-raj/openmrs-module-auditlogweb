@@ -93,15 +93,17 @@ public class RestExceptionHandler {
 	@ExceptionHandler(APIAuthenticationException.class)
 	public ResponseEntity<Map<String, String>> handleAPIAuthException(APIAuthenticationException ex) {
 		if (Context.isAuthenticated()) {
-			log.warn("Request failed due failed authentication attempt");
+			log.warn("Request failed due to not have enough permissions");
 			return buildResponseEntity("Forbidden", ex.getMessage(), HttpStatus.FORBIDDEN);
 		}
-		log.warn("Request failed due to not have enough permissions");
+		
+		log.warn("Request failed due failed authentication attempt");
 		return buildResponseEntity("Unauthorized", ex.getMessage(), HttpStatus.UNAUTHORIZED);
 	}
 	
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<Map<String, String>> handleGeneralError(Exception ex) {
+		log.error("Unexpected error occurred, ", ex);
 		return buildResponseEntity("Internal Server Error", "An unexpected error occurred",
 		    HttpStatus.INTERNAL_SERVER_ERROR);
 	}

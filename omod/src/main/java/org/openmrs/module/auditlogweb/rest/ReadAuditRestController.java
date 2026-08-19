@@ -57,7 +57,7 @@ public class ReadAuditRestController {
 			List<ReadAuditLogDTO> readAuditLogsDTO = readAuditService
 			        .mapToReadAuditLogDTO(Collections.singletonList(readAuditLog));
 			return ReadAuditLogResponseDTO.builder().totalLogs(1).currentLogs(1).readAuditLogs(readAuditLogsDTO)
-			        .totalPages(1).currentPage(0).build();
+			        .totalPages(1).build();
 		}
 		
 		if (page < 0) {

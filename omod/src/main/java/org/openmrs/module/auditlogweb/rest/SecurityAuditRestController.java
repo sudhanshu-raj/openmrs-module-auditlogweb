@@ -64,7 +64,7 @@ public class SecurityAuditRestController {
 			}
 			List<SecurityAuditLogDTO> securityAuditLogsDTO = mapToDTOs(Collections.singletonList(securityEvent));
 			return SecurityLogResponseDTO.builder().totalLogs(1).currentLogs(1).securityAuditLogs(securityAuditLogsDTO)
-			        .totalPages(1).currentPage(0).build();
+			        .totalPages(1).build();
 		}
 		
 		if (page < 0) {
