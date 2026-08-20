@@ -60,13 +60,8 @@ public class ReadAuditRestController {
 			        .totalPages(1).build();
 		}
 		
-		if (page < 0) {
-			page = 0;
-		}
-		if (size <= 0) {
-			size = 15;
-		}
-		size = Math.min(size, AuditLogConstants.MAX_PAGE_SIZE);
+		size = UtilClass.sanitizePageSizeValue(size);
+		page = UtilClass.sanitizePageValue(page, size);
 		
 		Date start = UtilClass.parseDate(startDate, false);
 		Date end = UtilClass.parseDate(endDate, true);
@@ -92,13 +87,8 @@ public class ReadAuditRestController {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid session id");
 		}
 		
-		if (page < 0) {
-			page = 0;
-		}
-		if (size <= 0) {
-			size = 15;
-		}
-		size = Math.min(size, AuditLogConstants.MAX_PAGE_SIZE);
+		size = UtilClass.sanitizePageSizeValue(size);
+		page = UtilClass.sanitizePageValue(page, size);
 		
 		List<ReadAuditLog> relatedAudits = readAuditService.getRelatedReadLogs(sessionId, page, size);
 		long totalCount = readAuditService.countRelatedReadLogs(sessionId);

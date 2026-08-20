@@ -67,13 +67,8 @@ public class SecurityAuditRestController {
 			        .totalPages(1).build();
 		}
 		
-		if (page < 0) {
-			page = 0;
-		}
-		if (size <= 0) {
-			size = 15;
-		}
-		size = Math.min(size, AuditLogConstants.MAX_PAGE_SIZE);
+		size = UtilClass.sanitizePageSizeValue(size);
+		page = UtilClass.sanitizePageValue(page, size);
 		
 		Date start = UtilClass.parseDate(startDate, false);
 		Date end = UtilClass.parseDate(endDate, true);
@@ -98,13 +93,8 @@ public class SecurityAuditRestController {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid session id");
 		}
 		
-		if (page < 0) {
-			page = 0;
-		}
-		if (size <= 0) {
-			size = 15;
-		}
-		size = Math.min(size, AuditLogConstants.MAX_PAGE_SIZE);
+		size = UtilClass.sanitizePageSizeValue(size);
+		page = UtilClass.sanitizePageValue(page, size);
 		
 		List<AuditSecurityEvent> allRelated = auditService.getRelatedSecurityEvents(sessionId, page, size);
 		long totalCount = auditService.countRelatedSecurityEvents(sessionId);
