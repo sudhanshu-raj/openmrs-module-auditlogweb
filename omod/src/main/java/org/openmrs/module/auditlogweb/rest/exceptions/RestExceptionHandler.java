@@ -46,7 +46,7 @@ import java.util.Map;
  * message</li>
  * </ul>
  */
-@ControllerAdvice
+@ControllerAdvice(basePackages = "org.openmrs.module.auditlogweb.rest")
 public class RestExceptionHandler {
 	
 	private final Logger log = LoggerFactory.getLogger(RestExceptionHandler.class);
@@ -98,7 +98,7 @@ public class RestExceptionHandler {
 		}
 		
 		log.warn("Request denied, the caller is not authenticated: {}", ex.getMessage());
-		return buildResponseEntity("Unauthorized", ex.getMessage(), HttpStatus.UNAUTHORIZED);
+		return buildResponseEntity("Unauthorized", "Authentication required", HttpStatus.UNAUTHORIZED);
 	}
 	
 	@ExceptionHandler(Exception.class)
