@@ -14,7 +14,6 @@ import org.openmrs.module.auditlogweb.AuditSecurityEvent;
 import org.openmrs.module.auditlogweb.api.AuditService;
 import org.openmrs.module.auditlogweb.api.dto.SecurityAuditLogDTO;
 import org.openmrs.module.auditlogweb.api.dto.SecurityLogResponseDTO;
-import org.openmrs.module.auditlogweb.api.utils.AuditLogConstants;
 import org.openmrs.module.auditlogweb.api.utils.AuditSecurityEventType;
 import org.openmrs.module.auditlogweb.api.utils.UtilClass;
 import org.openmrs.module.webservices.rest.web.RestConstants;
@@ -89,7 +88,7 @@ public class SecurityAuditRestController {
 	        @RequestParam(value = "page", defaultValue = "0") int page,
 	        @RequestParam(value = "size", defaultValue = "15") int size) {
 		
-		if (sessionId == null || sessionId.trim().isEmpty()) {
+		if (sessionId.trim().isEmpty()) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid session id");
 		}
 		
@@ -111,7 +110,7 @@ public class SecurityAuditRestController {
 			return null;
 		}
 		return SecurityAuditLogDTO.builder().id(event.getId()).eventType(event.getEventType()).username(event.getUsername())
-		        .userUuid(event.getUserUuid()).eventTime(event.getEventTime()).ipAddress(event.getIpAddress())
+		        .userUUID(event.getUserUuid()).eventTime(event.getEventTime()).ipAddress(event.getIpAddress())
 		        .userAgent(event.getUserAgent()).sessionId(event.getSessionId()).details(event.getDetails()).build();
 	}
 	

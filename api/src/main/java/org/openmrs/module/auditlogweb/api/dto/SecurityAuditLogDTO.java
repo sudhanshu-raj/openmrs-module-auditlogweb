@@ -26,7 +26,7 @@ public class SecurityAuditLogDTO {
 	
 	private String username;
 	
-	private String userUuid;
+	private String userUUID;
 	
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss", timezone = "GMT")
 	private Date eventTime;
