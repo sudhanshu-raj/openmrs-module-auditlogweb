@@ -11,7 +11,7 @@ package org.openmrs.module.auditlogweb.api.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.openmrs.api.impl.BaseOpenmrsService;
-import org.openmrs.module.ModuleEventType;
+import org.openmrs.module.auditlogweb.api.utils.ModuleEventType;
 import org.openmrs.module.auditlogweb.ModuleEvent;
 import org.openmrs.module.auditlogweb.api.ModuleEventService;
 import org.openmrs.module.auditlogweb.api.dao.ModuleEventDao;

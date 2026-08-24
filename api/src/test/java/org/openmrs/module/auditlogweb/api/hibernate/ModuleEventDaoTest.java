@@ -28,7 +28,7 @@ import static org.mockito.Mockito.eq;
 import org.mockito.MockitoAnnotations;
 
 import org.openmrs.module.auditlogweb.ModuleEvent;
-import org.openmrs.module.ModuleEventType;
+import org.openmrs.module.auditlogweb.api.utils.ModuleEventType;
 
 import java.util.Collections;
 import java.util.Date;

@@ -9,7 +9,7 @@
  */
 package org.openmrs.module.auditlogweb.api;
 
-import org.openmrs.module.ModuleEventType;
+import org.openmrs.module.auditlogweb.api.utils.ModuleEventType;
 import org.openmrs.module.auditlogweb.ModuleEvent;
 import org.openmrs.module.auditlogweb.ReadAuditLog;
 import java.util.List;

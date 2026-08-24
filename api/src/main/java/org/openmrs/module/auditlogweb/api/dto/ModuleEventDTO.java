@@ -11,7 +11,7 @@ package org.openmrs.module.auditlogweb.api.dto;
 
 import lombok.Builder;
 import lombok.Data;
-import org.openmrs.module.ModuleEventType;
+import org.openmrs.module.auditlogweb.api.utils.ModuleEventType;
 
 import java.util.Date;
 

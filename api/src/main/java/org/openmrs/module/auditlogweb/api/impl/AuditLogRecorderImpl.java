@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.context.Daemon;
-import org.openmrs.module.ModuleEventType;
+import org.openmrs.module.auditlogweb.api.utils.ModuleEventType;
 import org.openmrs.module.auditlogweb.ModuleEvent;
 import org.openmrs.module.auditlogweb.ReadAuditLog;
 import org.openmrs.module.auditlogweb.api.AuditLogContext;

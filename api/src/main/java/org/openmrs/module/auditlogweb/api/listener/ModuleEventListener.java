@@ -11,8 +11,12 @@ package org.openmrs.module.auditlogweb.api.listener;
 
 import lombok.RequiredArgsConstructor;
 import org.openmrs.api.context.Daemon;
-import org.openmrs.module.ModuleActionEvent;
-import org.openmrs.module.ModuleEventType;
+import org.openmrs.module.AbstractModuleEvent;
+import org.openmrs.module.ModuleLoadEvent;
+import org.openmrs.module.ModuleStartEvent;
+import org.openmrs.module.ModuleStopEvent;
+import org.openmrs.module.ModuleUnloadEvent;
+import org.openmrs.module.auditlogweb.api.utils.ModuleEventType;
 import org.openmrs.module.auditlogweb.AuditlogwebActivator;
 import org.openmrs.module.auditlogweb.api.AuditLogRecorder;
 import org.slf4j.Logger;
@@ -29,13 +33,12 @@ public class ModuleEventListener {
 	private final AuditLogRecorder auditLogRecorder;
 	
 	/**
-	 * We're listening to the module event like MODULE_START, MODULE_STOP, MODULE_LOAD, MODULE_UNLOAD.
-	 * which got published from the core.We do not need the module action during the startup and
-	 * shutdown of application that's why checking if not isDaemonThread.Then further opening the new
-	 * session for the case if dur
+	 * Listening to the module event like {@link ModuleLoadEvent}, {@link ModuleStartEvent},
+	 * {@link ModuleStopEvent}, {@link ModuleUnloadEvent} which got published from the core.We do not
+	 * need the module action during the startup and shutdown of application that's why ignoring them.
 	 */
 	@EventListener
-	public void listenModuleAction(ModuleActionEvent moduleActionEvent) {
+	public void listenModuleAction(AbstractModuleEvent moduleActionEvent) {
 		try {
 			if (Daemon.isDaemonThread()) {
 				return;
@@ -45,7 +48,17 @@ public class ModuleEventListener {
 				return;
 			}
 			
-			ModuleEventType moduleEventType = moduleActionEvent.getEventType();
+			ModuleEventType moduleEventType;
+			if (moduleActionEvent instanceof ModuleLoadEvent) {
+				moduleEventType = ModuleEventType.MODULE_LOAD;
+			} else if (moduleActionEvent instanceof ModuleStartEvent) {
+				moduleEventType = ModuleEventType.MODULE_START;
+			} else if (moduleActionEvent instanceof ModuleStopEvent) {
+				moduleEventType = ModuleEventType.MODULE_STOP;
+			} else {
+				moduleEventType = ModuleEventType.MODULE_UNLOAD;
+			}
+			
 			String moduleId = moduleActionEvent.getModuleId();
 			String moduleName = moduleActionEvent.getModuleName();
 			String moduleVersion = moduleActionEvent.getModuleVersion();

@@ -29,7 +29,7 @@ import org.openmrs.module.auditlogweb.ReadAuditLog;
 import org.openmrs.module.auditlogweb.api.dao.ModuleEventDao;
 import org.openmrs.module.auditlogweb.api.dao.ReadAuditDAO;
 import org.openmrs.module.auditlogweb.api.impl.AuditLogRecorderImpl;
-import org.openmrs.module.ModuleEventType;
+import org.openmrs.module.auditlogweb.api.utils.ModuleEventType;
 
 import java.util.Arrays;
 import java.util.List;

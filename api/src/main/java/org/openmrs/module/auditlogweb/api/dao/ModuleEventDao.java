@@ -9,7 +9,7 @@
  */
 package org.openmrs.module.auditlogweb.api.dao;
 
-import org.openmrs.module.ModuleEventType;
+import org.openmrs.module.auditlogweb.api.utils.ModuleEventType;
 import org.openmrs.module.auditlogweb.ModuleEvent;
 
 import java.util.Date;
