@@ -90,7 +90,7 @@ public class ReadAuditRestController {
 		size = UtilClass.sanitizePageSizeValue(size);
 		page = UtilClass.sanitizePageValue(page, size);
 		
-		List<ReadAuditLog> relatedAudits = readAuditService.getRelatedReadLogs(sessionId, page, size);
+		List<ReadAuditLog> relatedAudits = readAuditService.getRelatedReadLogs(sessionId.trim(), page, size);
 		long totalCount = readAuditService.countRelatedReadLogs(sessionId);
 		int totalPages = UtilClass.computeTotalPages(totalCount, size);
 		
@@ -98,7 +98,7 @@ public class ReadAuditRestController {
 		
 		return ReadAuditLogResponseDTO.builder().totalLogs(totalCount)
 		        .currentLogs(readAuditLogsDTO != null ? readAuditLogsDTO.size() : 0).totalPages(totalPages).currentPage(page)
-		        .currentPage(page).readAuditLogs(readAuditLogsDTO).build();
+		        .readAuditLogs(readAuditLogsDTO).build();
 		
 	}
 }
